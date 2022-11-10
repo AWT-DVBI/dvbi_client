@@ -1,0 +1,37 @@
+{ pkgs, vscode, vscodeBaseDir }:
+
+
+vscode.override {
+  inherit vscodeBaseDir;
+  nixExtensions = pkgs.vscode-utils.extensionsFromVscodeMarketplace [
+
+    {
+      name = "vscode-coverage-gutters";
+      publisher = "ryanluker";
+      version = "2.8.2";
+      sha256 = "sha256-gMzFI0Z9b7I7MH9v/UC7dXCqllmXcqHVJU7xMozmMJc=";
+    }
+
+  ] ++ (with pkgs.vscode-extensions;  [
+    yzhang.markdown-all-in-one
+    timonwong.shellcheck
+    jnoortheen.nix-ide
+    github.github-vscode-theme
+    dart-code.flutter
+    dart-code.dart-code
+  ]);
+  settings = {
+    "window.menuBarVisibility" = "toggle";
+    "window.zoomLevel" = 0;
+    "editor.fontSize" = 16;
+    "terminal.integrated.fontSize" = 16;
+    "lldb.displayFormat" = "hex";
+    "breadcrumbs.enabled" = false;
+    "files.associations" = {
+      "*.s" = "asm-intel-x86-generic";
+    };
+    "editor.minimap.autohide" = true;
+    "workbench.preferredDarkColorTheme" = "GitHub Dark";
+    "workbench.preferredLightColorTheme" = "GitHub Light";
+  };
+}
