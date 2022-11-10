@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:dvbi_lib/dvbi_lib.dart';
 
 void main() {
   runApp(const MyApp());
@@ -63,6 +64,8 @@ class _MyHomePageState extends State<MyHomePage> {
 
   @override
   Widget build(BuildContext context) {
+    final calculator = Calculator();
+
     // This method is rerun every time setState is called, for instance as done
     // by the _incrementCounter method above.
     //
@@ -96,7 +99,7 @@ class _MyHomePageState extends State<MyHomePage> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
             const Text(
-              'You have pushed the button this many times:',
+              'You have pushed the button this many times:', 
             ),
             Text(
               '$_counter',
