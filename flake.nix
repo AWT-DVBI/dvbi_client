@@ -24,9 +24,7 @@
 
         myflutter = pkgs.writeScriptBin "flutter" ''
           TMP=${tmpdir}
-          mkdir -p $TMP
           export HOME=$TMP
-          export PUB_CACHE="$TMP/.pub-cache";
           export LD_LIBRARY_PATH="${pkgs.libepoxy}/lib";
           ${pkgs.flutter}/bin/flutter "$@"
         '';
@@ -35,6 +33,10 @@
           vscode = nixos-codium.packages.${system}.default;
           inherit pkgs;
           vscodeBaseDir = tmpdir + "/codium";
+          env = {
+            HOME = tmpdir;
+            LD_LIBRARY_PATH="${pkgs.libepoxy}/lib";
+          };
         };
 
         # Getting information
@@ -129,6 +131,7 @@
             # Flutter configuration
             export CHROME_EXECUTABLE="chromium";
             export TMP=${tmpdir}
+            mkdir -p $TMP
 
             # Android jail
             export JAVA_HOME=${pkgs.jdk.home}
