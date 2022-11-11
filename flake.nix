@@ -85,7 +85,11 @@
             emulatorVersion = "31.3.9";
           };
         };
+
+        # Debug OpenGL errors with
+        # $ glxinfo | grep OpenGL
         nativeDeps = with pkgs; [
+          #glxinfo
           autoPatchelfHook
           pkg-config
           cmake
@@ -107,6 +111,7 @@
           wxGTK31
           gtk3
           pcre
+          pcre2
           libepoxy
           lzlib
           clang
@@ -132,6 +137,8 @@
             export CHROME_EXECUTABLE="chromium";
             export TMP=${tmpdir}
             mkdir -p $TMP
+            unset NIX_LD_LIBRARY_PATH
+            unset NIX_LD
 
             # Android jail
             export JAVA_HOME=${pkgs.jdk.home}
