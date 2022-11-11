@@ -39,6 +39,10 @@ vscode.override {
     "files.associations" = {
       "*.s" = "asm-intel-x86-generic";
     };
+   
+   
+  	"debug.openDebug" = "openOnDebugBreak";
+	  "debug.internalConsoleOptions" = "openOnSessionStart";
     "editor.minimap.autohide" = true;
     "workbench.preferredDarkColorTheme" = "GitHub Dark";
     "workbench.preferredLightColorTheme" = "GitHub Light";
@@ -47,5 +51,19 @@ vscode.override {
     "dart.flutterRunLogFile" =  "${vscodeBaseDir}/run-\${name}.log";
     "dart.flutterTestLogFile" = "${vscodeBaseDir}/test-\${name}.log";
     "dart.env" = env;
+
+    "[dart]" = {
+    "editor.formatOnSave" = true;
+    "editor.formatOnType" = true;
+    "editor.rulers" = [
+      80
+    ];
+    "editor.selectionHighlight" = false;
+    "editor.suggest.snippetsPreventQuickSuggestions" = false;
+    "editor.suggestSelection" = "first";
+    "editor.tabCompletion" = "onlySnippets";
+    "editor.wordBasedSuggestions" = false;
+    "dart.openDevTools" = "flutter";
+  };
   };
 }

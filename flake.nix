@@ -23,11 +23,8 @@
         };
 
         myflutter = pkgs.writeScriptBin "flutter" ''
-          TMP=${tmpdir}
-          export HOME=$TMP
-          export LD_LIBRARY_PATH="${pkgs.libepoxy}/lib";
-          export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:/run/opengl-driver/lib:/run/opengl-driver-32/lib";
-          ${pkgs.flutter}/bin/flutter "$@"
+
+         ${pkgs.flutter}/bin/flutter "$@"
         '';
 
         mycodium = import ./vscode.nix {
@@ -36,7 +33,7 @@
           vscodeBaseDir = tmpdir + "/codium";
           env = {
             HOME = tmpdir;
-            LD_LIBRARY_PATH="${pkgs.libepoxy}/lib";
+            LD_LIBRARY_PATH="$LD_LIBRARY_PATH:${pkgs.libepoxy}/lib";
           };
         };
 
@@ -95,7 +92,7 @@
           pkg-config
           cmake
           clang
-          myflutter
+          flutter
           mycodium
           ninja
         ];
@@ -104,6 +101,7 @@
           dbus
           libxkbcommon
           xorg.libXdmcp
+          xorg.libXtst
           libdatrie
           libthai
           libsepol
@@ -134,13 +132,20 @@
           nativeBuildInputs = nativeDeps ++ [ chromium ];
           buildInputs = buildDeps ++ nativeDeps;
           shellHook = ''
+            set -e
+            export HOME=${tmpdir}
+            export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:${pkgs.libepoxy}/lib";
+            export PUB_CACHE=$HOME/.pub_cache
+
             # Flutter configuration
             export CHROME_EXECUTABLE="chromium";
             export TMP=${tmpdir}
-            mkdir -p $TMP
+            mkdir -p $TMP/.cache/flutter
+            
+            ln -f -n -s ${pkgs.flutter}/bin/cache/dart-sdk $TMP/.cache/flutter/dart-sdk 
             unset NIX_LD_LIBRARY_PATH
             unset NIX_LD
-
+            
             # Android jail
             export JAVA_HOME=${pkgs.jdk.home}
             export ANDROID_SDK_HOME=$TMP/Android;
