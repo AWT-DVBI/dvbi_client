@@ -26,6 +26,7 @@
           TMP=${tmpdir}
           export HOME=$TMP
           export LD_LIBRARY_PATH="${pkgs.libepoxy}/lib";
+          export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:/run/opengl-driver/lib:/run/opengl-driver-32/lib";
           ${pkgs.flutter}/bin/flutter "$@"
         '';
 
