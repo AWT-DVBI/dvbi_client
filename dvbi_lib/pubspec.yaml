@@ -10,6 +10,7 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  xml: ^6.1.0 #need to use version 6.1.0. since 6.2.0 and higher have a transitive dep on collections 1.17 which conflicts with flutter-test dep on 1.16
 
 dev_dependencies:
   flutter_test:
