@@ -17,22 +17,17 @@
 
         pkgs = import nixpkgs {
           inherit system; config = {
-          allowUnfree = true;
-          android_sdk.accept_license = true;
+            allowUnfree = true;
+            android_sdk.accept_license = true;
+          };
         };
-        };
-
-        myflutter = pkgs.writeScriptBin "flutter" ''
-
-         ${pkgs.flutter}/bin/flutter "$@"
-        '';
 
         mycodium = import ./vscode.nix {
           vscode = nixos-codium.packages.${system}.default;
           inherit pkgs;
           vscodeBaseDir = tmpdir + "/codium";
           env = {
-            HOME = tmpdir;
+            #HOME = tmpdir;
             LD_LIBRARY_PATH="$LD_LIBRARY_PATH:${pkgs.libepoxy}/lib";
           };
         };
@@ -133,13 +128,12 @@
           buildInputs = buildDeps ++ nativeDeps;
           shellHook = ''
             set -e
-            export HOME=${tmpdir}
             export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:${pkgs.libepoxy}/lib";
             export PUB_CACHE=$HOME/.pub_cache
 
             # Flutter configuration
             export CHROME_EXECUTABLE="chromium";
-            export TMP=${tmpdir}
+            export TMP=$HOME
             mkdir -p $TMP/.cache/flutter
             
             ln -f -n -s ${pkgs.flutter}/bin/cache/dart-sdk $TMP/.cache/flutter/dart-sdk 
