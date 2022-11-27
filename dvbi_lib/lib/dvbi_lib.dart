@@ -1,5 +1,6 @@
 library dvbi_lib;
 
+import 'package:http/http.dart' as http;
 import 'package:xml/xml.dart';
 
 /// A Calculator.
@@ -8,28 +9,50 @@ class Calculator {
   int addOne(int value) => value + 1;
 }
 
-class XmlParser {
+class ServiceListManager {
   //field
-  var myXml = '''<?xml version = "1.0"?> 
-   <bookshelf> 
-      <book> 
-         <title lang = "english">Growing a Language</title> 
-         <price>29.99</price> 
-      </book> 
-      
-      <book> 
-         <title lang = "english">Learning XML</title> 
-         <price>39.95</price> 
-      </book> 
-      <price>132.00</price> 
-   </bookshelf>''';
 
-  // function
-  void xmlHandler() {
-    final doc = XmlDocument.parse(myXml);
+  String endpointUrl = "https://dvb-i.net/production/services.php/de";
 
-    print("testrun");
-    final prices = doc.findAllElements('price');
-    prices.map((node) => node.text).forEach(print);
+  //functions of servicelistmanager class
+
+  Future<http.Response> fetchServiceList() {
+    return http.get(Uri.parse(endpointUrl));
+  }
+
+  Future<XmlDocument> getServiceListXml() async {
+    var response = await fetchServiceList();
+
+    if (response.statusCode == 200) {
+      final serviceList = XmlDocument.parse(response.body.toString());
+
+      return serviceList;
+
+      print("Done");
+    } else {
+      print("sth went wrong code: " + response.statusCode.toString());
+
+      return XmlDocument.parse(response.body.toString());
+    }
+  }
+
+  Future<void> showChannels() async {
+    final document = await getServiceListXml();
+    final serviceNames = document.findAllElements('ServiceName');
+    //channel list as string
+    serviceNames.map((node) => node.text).forEach((element) => print(element));
+    print(serviceNames.length);
+    print("Done");
+  }
+
+  Future<String> getArdLiveStream() async {
+    print("get ardvmpd streams");
+    final document = await getServiceListXml();
+    var res = document.findAllElements("Service");
+
+    //res.forEach((node) => print(node.getElement("ProviderName")));
+    res.forEach((node) => print(node.getElement("ServiceInstance")));
+
+    return "https://mcdn.daserste.de/daserste/dash/manifest.mpd"; //change to res
   }
 }

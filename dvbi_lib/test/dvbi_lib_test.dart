@@ -2,12 +2,12 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:dvbi_lib/dvbi_lib.dart';
 
-void main() {
+Future<void> main() async {
   print("hello");
 
-  var t1 = XmlParser();
-  print(t1.myXml);
-  t1.xmlHandler();
+  var t1 = ServiceListManager();
+  await t1.showChannels();
+  await t1.getArdLiveStream();
   test('adds one to input values', () {
     final calculator = Calculator();
     expect(calculator.addOne(2), 3);
