@@ -6,8 +6,11 @@ Future<void> main() async {
   print("hello");
 
   var t1 = ServiceListManager();
-  await t1.showChannels();
-  await t1.getArdLiveStream();
+  await t1.testerFun();
+
+  var t2 = ServiceObject(
+      "serviceName", "mpdURI", "channelBannerURI", PlayListObject());
+
   test('adds one to input values', () {
     final calculator = Calculator();
     expect(calculator.addOne(2), 3);
