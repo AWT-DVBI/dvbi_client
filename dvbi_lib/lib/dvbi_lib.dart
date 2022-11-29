@@ -53,7 +53,7 @@ class ServiceListManager {
     //res.forEach((node) => print(node.getElement("ProviderName")));
     //res.forEach((node) => print(node.getElement("ServiceInstance")));
 
-    return "https://mcdn.daserste.de/daserste/dash/manifest.mpd"; //change to res
+    return "https://livesim.dashif.org/livesim/mup_30/testpic_2s/Manifest.mpd"; //change to res
   }
 
   Future<void> testerFun() async {
@@ -62,10 +62,12 @@ class ServiceListManager {
     var res = document.findAllElements("Service");
 
     //ServiceName
-    //res.map((e) => e.getElement("ServiceName")).forEach((e) => print(e?.text));
-    //res.map((e) => e.getElement("ServiceName").text);
-
+    /*
+    res.map((e) => e.getElement("ServiceName")).forEach((e) => print(e?.text));
+    res.map((e) => e.getElement("ServiceName").text);
+    */
     //mdpUri
+    /*
     res
         .map((e) => e
             .getElement("ServiceInstance")
@@ -74,8 +76,18 @@ class ServiceListManager {
             ?.getElement("URI")
             ?.text)
         .forEach((element) => print(element));
-
+      */
     //channelBannerUri
+
+    /*
+    res
+        .map((e) => e
+            .getElement("RelatedMaterial")
+            ?.getElement("MediaLocator")
+            ?.getElement("tva:MediaUri")
+            ?.text)
+        .forEach((element) => print(element));
+    */
 
     //Playlistobj
   }
