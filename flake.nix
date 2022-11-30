@@ -137,8 +137,6 @@
             mkdir -p $TMP/.cache/flutter
             
             ln -f -n -s ${pkgs.flutter}/bin/cache/dart-sdk $TMP/.cache/flutter/dart-sdk 
-            unset NIX_LD_LIBRARY_PATH
-            unset NIX_LD
             
             # Android jail
             export JAVA_HOME=${pkgs.jdk.home}
