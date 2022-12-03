@@ -1,62 +1,21 @@
 import 'package:flutter/material.dart';
-import 'package:video_player/video_player.dart';
+import 'carousel.dart';
+import 'package:dvbi_lib/dvbi_lib.dart';
+import 'package:provider/provider.dart';
 
-void main() => runApp(const VideoApp());
-
-/// Stateful widget to fetch and then display video content.
-class VideoApp extends StatefulWidget {
-  const VideoApp({Key? key}) : super(key: key);
-
-  @override
-  _VideoAppState createState() => _VideoAppState();
+Future<void> main() async {
+  runApp(const MainApp());
 }
 
-class _VideoAppState extends State<VideoApp> {
-  late VideoPlayerController _controller;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = VideoPlayerController.network(
-        'https://livesim.dashif.org/livesim/mup_30/testpic_2s/Manifest.mpd') //https://flutter.github.io/assets-for-api-docs/assets/videos/bee.mp4
-      ..initialize().then((_) {
-        // Ensure the first frame is shown after the video is initialized, even before the play button has been pressed.
-        setState(() {});
-      });
-  }
+class MainApp extends StatelessWidget {
+  const MainApp({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Video Demo',
-      home: Scaffold(
-        body: Center(
-          child: _controller.value.isInitialized
-              ? AspectRatio(
-                  aspectRatio: _controller.value.aspectRatio,
-                  child: VideoPlayer(_controller),
-                )
-              : Container(),
-        ),
-        floatingActionButton: FloatingActionButton(
-          onPressed: () {
-            setState(() {
-              _controller.value.isPlaying
-                  ? _controller.pause()
-                  : _controller.play();
-            });
-          },
-          child: Icon(
-            _controller.value.isPlaying ? Icons.pause : Icons.play_arrow,
-          ),
-        ),
-      ),
-    );
-  }
-
-  @override
-  void dispose() {
-    super.dispose();
-    _controller.dispose();
+    return FutureProvider(
+        create: (_) => ServiceListManager().transformXMLToServiceObjList(),
+        initialData: const [],
+        child: MaterialApp(
+            title: 'Video Demo', home: MyCarousel(items: const [])));
   }
 }

@@ -1,13 +1,10 @@
+// ignore_for_file: avoid_print
+
 library dvbi_lib;
 
 import 'package:http/http.dart' as http;
 import 'package:xml/xml.dart';
-
-/// A Calculator.
-class Calculator {
-  /// Returns [value] plus 1.
-  int addOne(int value) => value + 1;
-}
+import 'dart:io';
 
 class ServiceListManager {
   //field
@@ -27,10 +24,8 @@ class ServiceListManager {
       final serviceList = XmlDocument.parse(response.body.toString());
 
       return serviceList;
-
-      print("Done");
     } else {
-      print("sth went wrong code: " + response.statusCode.toString());
+      print("sth went wrong code: ${response.statusCode}");
 
       return XmlDocument.parse(response.body.toString());
     }
@@ -48,6 +43,7 @@ class ServiceListManager {
   Future<String> getArdLiveStream() async {
     print("get ardvmpd streams");
     final document = await getServiceListXml();
+    // ignore: unused_local_variable
     var res = document.findAllElements("Service");
 
     //res.forEach((node) => print(node.getElement("ProviderName")));
@@ -59,6 +55,7 @@ class ServiceListManager {
   Future<void> testerFun() async {
     print("testerFun");
     final document = await getServiceListXml();
+    // ignore: unused_local_variable
     var res = document.findAllElements("Service");
 
     //ServiceName
@@ -92,9 +89,7 @@ class ServiceListManager {
     //Playlistobj
   }
 
-  /**
-   *  transform xml to List of Serviceobjects 
-   */
+  ///  transform xml to List of Serviceobjects
   Future<Iterable<ServiceObject>> transformXMLToServiceObjList() async {
     print("get ServiceObjects");
     final document = await getServiceListXml();
@@ -106,9 +101,7 @@ class ServiceListManager {
 
 class PlayListObject {}
 
-/**
- * class that contains meta information about each service form a servicelist 
- */
+/// class that contains meta information about each service form a servicelist
 class ServiceObject {
   String serviceName = "";
   String mpdURI = "";
@@ -120,8 +113,6 @@ class ServiceObject {
   ServiceObject(this.serviceName, this.mpdURI, this.channelBannerURI,
       this.playListObject);
 }
-
-
 
 /*
 ServiceObject
