@@ -5,8 +5,6 @@ library dvbi_lib;
 import 'package:http/http.dart' as http;
 import 'package:xml/xml.dart';
 
-const String endpointUrl = "https://dvb-i.net/production/services.php/de";
-
 class DVBIException implements Exception {
   String cause;
   DVBIException(this.cause);

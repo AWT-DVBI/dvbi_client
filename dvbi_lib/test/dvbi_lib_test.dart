@@ -4,6 +4,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'dart:convert';
 import 'package:dvbi_lib/dvbi_lib.dart';
 
+const String endpointUrl = "https://dvb-i.net/production/services.php/de";
+
 Future<void> main() async {
   final dvbi = DVBI(endpointUrl: endpointUrl);
   var services = dvbi.getServiceStream();
