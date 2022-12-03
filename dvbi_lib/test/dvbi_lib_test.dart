@@ -1,17 +1,17 @@
 // ignore_for_file: avoid_print, unused_local_variable
 
 import 'package:flutter_test/flutter_test.dart';
-
+import 'dart:convert';
 import 'package:dvbi_lib/dvbi_lib.dart';
 
 Future<void> main() async {
-  print("hello");
+  final dvbi = DVBI(endpointUrl: endpointUrl);
+  var services = dvbi.getServiceStream();
 
-  var t1 = ServiceListManager();
-  await t1.testerFun();
+  var first = await services.first;
 
-  print(await t1.getArdLiveStream());
-
-  var t2 = ServiceObject(
-      "serviceName", "mpdURI", "channelBannerURI", PlayListObject());
+  JsonEncoder encoder = const JsonEncoder.withIndent('  ');
+  String prettyprint = encoder.convert(first);
+  print(prettyprint);
+  print("end");
 }

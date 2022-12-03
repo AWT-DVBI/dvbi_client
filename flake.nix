@@ -85,6 +85,7 @@
           #glxinfo
           autoPatchelfHook
           pkg-config
+          dart
           cmake
           clang
           flutter

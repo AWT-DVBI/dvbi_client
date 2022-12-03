@@ -1,28 +1,28 @@
-import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import 'package:video_player/video_player.dart';
+// import 'package:flutter/material.dart';
+// import 'package:provider/provider.dart';
+// import 'package:video_player/video_player.dart';
 
 
-class VideoApp extends StatelessWidget {
-   final String url;
-   const VideoApp({required this.url, Key? key}) : super(key: key);
+// class VideoApp extends StatelessWidget {
+//    final String url;
+//    const VideoApp({required this.url, Key? key}) : super(key: key);
 
   
-  @override
-  Widget build(BuildContext context) {
+//   @override
+//   Widget build(BuildContext context) {
     
-    return FutureProvider(
-      create: (_) => VideoPlayerController.network("")
-       ..initialize(),
-      initialData: [],
-      child: 
-      )
-    ;};
-  }
+//     return StreamProver(
+//       create: (_) => VideoPlayerController.network("")
+//        ..initialize(),
+//       initialData: [],
+//       child: 
+//       )
+//     ;};
+//   }
 
 
 
-}
+// }
 
 // /// Stateful widget to fetch and then display video content.
 // class VideoApp extends StatefulWidget {

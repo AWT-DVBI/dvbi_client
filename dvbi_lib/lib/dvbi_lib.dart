@@ -4,120 +4,137 @@ library dvbi_lib;
 
 import 'package:http/http.dart' as http;
 import 'package:xml/xml.dart';
-import 'dart:io';
 
-class ServiceListManager {
-  //field
+const String endpointUrl = "https://dvb-i.net/production/services.php/de";
 
-  String endpointUrl = "https://dvb-i.net/production/services.php/de";
-
-  //functions of servicelistmanager class
-
-  Future<http.Response> fetchServiceList() {
-    return http.get(Uri.parse(endpointUrl));
-  }
-
-  Future<XmlDocument> getServiceListXml() async {
-    var response = await fetchServiceList();
-
-    if (response.statusCode == 200) {
-      final serviceList = XmlDocument.parse(response.body.toString());
-
-      return serviceList;
-    } else {
-      print("sth went wrong code: ${response.statusCode}");
-
-      return XmlDocument.parse(response.body.toString());
-    }
-  }
-
-  Future<void> showChannels() async {
-    final document = await getServiceListXml();
-    final serviceNames = document.findAllElements('ServiceName');
-    //channel list as string
-    serviceNames.map((node) => node.text).forEach((element) => print(element));
-    print(serviceNames.length);
-    print("Done");
-  }
-
-  Future<String> getArdLiveStream() async {
-    print("get ardvmpd streams");
-    final document = await getServiceListXml();
-    // ignore: unused_local_variable
-    var res = document.findAllElements("Service");
-
-    //res.forEach((node) => print(node.getElement("ProviderName")));
-    //res.forEach((node) => print(node.getElement("ServiceInstance")));
-
-    return "https://livesim.dashif.org/livesim/mup_30/testpic_2s/Manifest.mpd"; //change to res
-  }
-
-  Future<void> testerFun() async {
-    print("testerFun");
-    final document = await getServiceListXml();
-    // ignore: unused_local_variable
-    var res = document.findAllElements("Service");
-
-    //ServiceName
-    /*
-    res.map((e) => e.getElement("ServiceName")).forEach((e) => print(e?.text));
-    res.map((e) => e.getElement("ServiceName").text);
-    */
-    //mdpUri
-    /*
-    res
-        .map((e) => e
-            .getElement("ServiceInstance")
-            ?.getElement("DASHDeliveryParameters")
-            ?.getElement("UriBasedLocation")
-            ?.getElement("URI")
-            ?.text)
-        .forEach((element) => print(element));
-      */
-    //channelBannerUri
-
-    /*
-    res
-        .map((e) => e
-            .getElement("RelatedMaterial")
-            ?.getElement("MediaLocator")
-            ?.getElement("tva:MediaUri")
-            ?.text)
-        .forEach((element) => print(element));
-    */
-
-    //Playlistobj
-  }
-
-  ///  transform xml to List of Serviceobjects
-  Future<Iterable<ServiceObject>> transformXMLToServiceObjList() async {
-    print("get ServiceObjects");
-    final document = await getServiceListXml();
-    var res = document.findAllElements("Service").map((e) => ServiceObject(
-        "serviceName", "mpdURI", "channelBannerURI", PlayListObject()));
-    return res;
-  }
+class DVBIException implements Exception {
+  String cause;
+  DVBIException(this.cause);
 }
 
 class PlayListObject {}
 
 /// class that contains meta information about each service form a servicelist
-class ServiceObject {
-  String serviceName = "";
-  String mpdURI = "";
-  String channelBannerURI = "";
 
-  PlayListObject playListObject;
+class ContentGuideSourceElem {
+  final Uri scheduleInfoEndpoint;
+  final Uri? programInfoEndpoint;
+  final String providerName;
+  final String cgsid;
 
-//constructor short way
-  ServiceObject(this.serviceName, this.mpdURI, this.channelBannerURI,
-      this.playListObject);
+  ContentGuideSourceElem(
+      {required this.scheduleInfoEndpoint,
+      required this.programInfoEndpoint,
+      required this.providerName,
+      required this.cgsid});
+
+  factory ContentGuideSourceElem.parse({required XmlElement d}) {
+    String scheduleInfoEndpoint =
+        d.getElement("ScheduleInfoEndpoint")!.getElement("URI")!.innerText;
+    String? programInfoEndpoint =
+        d.getElement("ProgramInfoEndpoint")?.getElement("URI")!.innerText;
+    String providerName = d.getElement("ProviderName")!.innerText;
+    String cgsid = d.getAttribute("CGSID")!;
+
+    return ContentGuideSourceElem(
+        cgsid: cgsid,
+        providerName: providerName,
+        programInfoEndpoint:
+            programInfoEndpoint != null ? Uri.parse(programInfoEndpoint) : null,
+        scheduleInfoEndpoint: Uri.parse(scheduleInfoEndpoint));
+  }
+
+  Map<String, dynamic> toJson() => {
+        'scheduleInfoEndpoint': scheduleInfoEndpoint.toString(),
+        'programInfoEndpoint': programInfoEndpoint.toString(),
+        'providerName': providerName,
+        'cgsid': cgsid
+      };
 }
 
-/*
-ServiceObject
-•	Uri -> mpd stream
-•	Servicename(channelname)
-•	contentUrl -> playlistObject (what is running on different channels)
-Uri -> channel banner
- */
+class ServiceElem {
+  final String serviceName;
+  final String uniqueIdentifier;
+  final String providerName;
+  final ContentGuideSourceElem? contentGuideSourceElem;
+
+  PlayListObject? playListObject;
+
+  ServiceElem(
+      {required this.serviceName,
+      required this.uniqueIdentifier,
+      required this.providerName,
+      required this.contentGuideSourceElem});
+
+  Map<String, dynamic> toJson() => {
+        'serviceName': serviceName,
+        'uniqueIdentifier': uniqueIdentifier,
+        'providerName': providerName,
+        'contentGuideSourceElem': contentGuideSourceElem,
+      };
+
+  //constructor short way
+  factory ServiceElem.parse(
+      {required XmlElement? d,
+      required List<XmlElement>? contentGuideSourceList}) {
+    if (d == null) {
+      throw DVBIException("Service object received null as data");
+    }
+
+    String serviceName = d.getElement("ServiceName")!.innerText;
+    String uniqueIdentifier = d.getElement("UniqueIdentifier")!.innerText;
+    String providerName = d.getElement("ProviderName")!.innerText;
+
+    XmlElement? contentGuideSource = d.getElement("ContentGuideSource");
+
+    if (contentGuideSource == null && contentGuideSourceList != null) {
+      String ref = d.getElement("ContentGuideSourceRef")!.innerText;
+      for (final elem in contentGuideSourceList) {
+        if (elem.getAttribute("CGSID") == ref) {
+          contentGuideSource = elem;
+        }
+      }
+    }
+
+    return ServiceElem(
+        serviceName: serviceName,
+        uniqueIdentifier: uniqueIdentifier,
+        providerName: providerName,
+        contentGuideSourceElem: contentGuideSource != null
+            ? ContentGuideSourceElem.parse(d: contentGuideSource)
+            : null);
+  }
+}
+
+class DVBI {
+  final String endpointUrl;
+  final http.Client httpClient;
+
+  DVBI({required this.endpointUrl}) : httpClient = http.Client();
+
+  Future<http.Response> getHttp(String endpointUrl) {
+    return http.get(Uri.parse(endpointUrl));
+  }
+
+  Stream<ServiceElem> getServiceStream() async* {
+    print(endpointUrl);
+    final response = await getHttp(endpointUrl);
+
+    if (response.statusCode == 200) {
+      final document =
+          XmlDocument.parse(response.body).getElement("ServiceList")!;
+
+      final serviceList = document.findAllElements("Service");
+      final List<XmlElement>? contentGuideSourceList =
+          document.getElement("ContentGuideSourceList")?.childElements.toList();
+
+      for (var sd in serviceList) {
+        yield ServiceElem.parse(
+            contentGuideSourceList: contentGuideSourceList, d: sd);
+      }
+    } else {
+      throw DVBIException(
+          "Status code invalid. Code: ${response.statusCode} Reason: ${response.reasonPhrase}");
+    }
+  }
+}
