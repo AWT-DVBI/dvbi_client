@@ -12,8 +12,6 @@ class DVBIException implements Exception {
 
 class PlayListObject {}
 
-/// class that contains meta information about each service form a servicelist
-
 class ContentGuideSourceElem {
   final Uri scheduleInfoEndpoint;
   final Uri? programInfoEndpoint;
@@ -26,13 +24,13 @@ class ContentGuideSourceElem {
       required this.providerName,
       required this.cgsid});
 
-  factory ContentGuideSourceElem.parse({required XmlElement d}) {
+  factory ContentGuideSourceElem.parse({required XmlElement data}) {
     String scheduleInfoEndpoint =
-        d.getElement("ScheduleInfoEndpoint")!.getElement("URI")!.innerText;
+        data.getElement("ScheduleInfoEndpoint")!.getElement("URI")!.innerText;
     String? programInfoEndpoint =
-        d.getElement("ProgramInfoEndpoint")?.getElement("URI")!.innerText;
-    String providerName = d.getElement("ProviderName")!.innerText;
-    String cgsid = d.getAttribute("CGSID")!;
+        data.getElement("ProgramInfoEndpoint")?.getElement("URI")!.innerText;
+    String providerName = data.getElement("ProviderName")!.innerText;
+    String cgsid = data.getAttribute("CGSID")!;
 
     return ContentGuideSourceElem(
         cgsid: cgsid,
@@ -44,10 +42,52 @@ class ContentGuideSourceElem {
 
   Map<String, dynamic> toJson() => {
         'scheduleInfoEndpoint': scheduleInfoEndpoint.toString(),
-        'programInfoEndpoint': programInfoEndpoint.toString(),
+        'programInfoEndpoint': programInfoEndpoint?.toString(),
         'providerName': providerName,
         'cgsid': cgsid
       };
+}
+
+enum HowRelatedEnum {
+  logo,
+  application,
+}
+
+class RelatedMaterialElem {
+  static const Map<String?, HowRelatedEnum> howRelatedMap = {
+    "urn:dvb:metadata:cs:HowRelatedCS:2020:1001.2": HowRelatedEnum.logo,
+    "urn:dvb:metadata:cs:LinkedApplicationCS:2019:1.1":
+        HowRelatedEnum.application,
+  };
+
+  final HowRelatedEnum? howRelated;
+  final XmlElement xml;
+
+  RelatedMaterialElem({required this.howRelated, required this.xml});
+
+  Uri getLogo({int? width}) {
+    if (howRelated == HowRelatedEnum.logo) {
+      String uriText =
+          xml.getElement("MediaLocator")!.getElement("MediaUri")!.innerText;
+      Uri uri = Uri.parse(uriText);
+
+      if (width != null) {
+        uri.replace(queryParameters: {"width": width});
+      }
+
+      return uri;
+    }
+
+    throw DVBIException("Called getLogo on unrelated Element: $howRelated");
+  }
+
+  factory RelatedMaterialElem.parse({required XmlElement data}) {
+    String? href = data.getElement("HowRelated")?.getAttribute("href");
+
+    HowRelatedEnum? howRelated = howRelatedMap[href];
+
+    return RelatedMaterialElem(howRelated: howRelated, xml: data);
+  }
 }
 
 class ServiceElem {
@@ -55,6 +95,8 @@ class ServiceElem {
   final String uniqueIdentifier;
   final String providerName;
   final ContentGuideSourceElem? contentGuideSourceElem;
+  final Uri? dashmpd;
+  final Uri? logo;
 
   PlayListObject? playListObject;
 
@@ -62,45 +104,100 @@ class ServiceElem {
       {required this.serviceName,
       required this.uniqueIdentifier,
       required this.providerName,
-      required this.contentGuideSourceElem});
+      required this.contentGuideSourceElem,
+      required this.dashmpd,
+      required this.logo});
 
   Map<String, dynamic> toJson() => {
         'serviceName': serviceName,
         'uniqueIdentifier': uniqueIdentifier,
         'providerName': providerName,
         'contentGuideSourceElem': contentGuideSourceElem,
+        'dashmpd': dashmpd?.toString(),
+        'logo': logo?.toString()
       };
 
   //constructor short way
   factory ServiceElem.parse(
-      {required XmlElement? d,
+      {required XmlElement data,
       required List<XmlElement>? contentGuideSourceList}) {
-    if (d == null) {
-      throw DVBIException("Service object received null as data");
+    String serviceName = data.getElement("ServiceName")!.innerText;
+    String uniqueIdentifier = data.getElement("UniqueIdentifier")!.innerText;
+    String providerName = data.getElement("ProviderName")!.innerText;
+
+    // Get serviceInstace elements ordered by priority
+    List<XmlElement> serviceInstances;
+    {
+      serviceInstances = data.findAllElements("ServiceInstance").toList();
+
+      // Sort ServiceInstance elements by priority
+      serviceInstances.sort((a, b) {
+        int res = int.parse(a.getAttribute("priority")!) -
+            int.parse(b.getAttribute("priority")!);
+        return res;
+      });
     }
 
-    String serviceName = d.getElement("ServiceName")!.innerText;
-    String uniqueIdentifier = d.getElement("UniqueIdentifier")!.innerText;
-    String providerName = d.getElement("ProviderName")!.innerText;
+    // Parse dashmpd
+    Uri? dashmpd;
+    {
+      XmlElement? dashDeliveryParameters = serviceInstances.firstWhere(
+          (element) => element.getElement("DASHDeliveryParameters") != null);
 
-    XmlElement? contentGuideSource = d.getElement("ContentGuideSource");
+      XmlElement? uriBasedLocation =
+          dashDeliveryParameters.getElement("UriBasedLocation");
 
-    if (contentGuideSource == null && contentGuideSourceList != null) {
-      String ref = d.getElement("ContentGuideSourceRef")!.innerText;
-      for (final elem in contentGuideSourceList) {
-        if (elem.getAttribute("CGSID") == ref) {
-          contentGuideSource = elem;
+      bool correctType =
+          uriBasedLocation?.getAttribute("contentType").toString() ==
+              "application/dash+xml";
+
+      if (correctType) {
+        String? uri = uriBasedLocation?.getElement("URI")!.innerText;
+        dashmpd = uri != null ? Uri.parse(uri) : null;
+      }
+    }
+
+    // Parse ContentGuideSource
+    ContentGuideSourceElem? contentGuideSourceObj;
+    {
+      XmlElement? contentGuideSource = data.getElement("ContentGuideSource");
+
+      if (contentGuideSource == null && contentGuideSourceList != null) {
+        String ref = data.getElement("ContentGuideSourceRef")!.innerText;
+        for (final elem in contentGuideSourceList) {
+          if (elem.getAttribute("CGSID") == ref) {
+            contentGuideSource = elem;
+          }
         }
       }
+
+      contentGuideSourceObj = contentGuideSource != null
+          ? ContentGuideSourceElem.parse(data: contentGuideSource)
+          : null;
+    }
+
+    List<RelatedMaterialElem> relatedMaterial = List.empty();
+    {
+      for (XmlElement rd in data.findAllElements("RelatedMaterial")) {
+        relatedMaterial.add(RelatedMaterialElem.parse(data: rd));
+      }
+    }
+
+    // Parse logo
+    Uri? logo;
+    {
+      logo = relatedMaterial
+          .firstWhere((element) => element.howRelated == HowRelatedEnum.logo)
+          .getLogo();
     }
 
     return ServiceElem(
         serviceName: serviceName,
         uniqueIdentifier: uniqueIdentifier,
         providerName: providerName,
-        contentGuideSourceElem: contentGuideSource != null
-            ? ContentGuideSourceElem.parse(d: contentGuideSource)
-            : null);
+        contentGuideSourceElem: contentGuideSourceObj,
+        dashmpd: dashmpd,
+        logo: logo);
   }
 }
 
@@ -119,16 +216,18 @@ class DVBI {
     final response = await getHttp(endpointUrl);
 
     if (response.statusCode == 200) {
-      final document =
+      final serviceList =
           XmlDocument.parse(response.body).getElement("ServiceList")!;
 
-      final serviceList = document.findAllElements("Service");
-      final List<XmlElement>? contentGuideSourceList =
-          document.getElement("ContentGuideSourceList")?.childElements.toList();
+      final services = serviceList.findAllElements("Service");
+      final List<XmlElement>? contentGuideSourceList = serviceList
+          .getElement("ContentGuideSourceList")
+          ?.childElements
+          .toList();
 
-      for (var sd in serviceList) {
+      for (var serviceData in services) {
         yield ServiceElem.parse(
-            contentGuideSourceList: contentGuideSourceList, d: sd);
+            contentGuideSourceList: contentGuideSourceList, data: serviceData);
       }
     } else {
       throw DVBIException(

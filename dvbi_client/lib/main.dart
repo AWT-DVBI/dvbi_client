@@ -6,7 +6,11 @@ import 'package:provider/provider.dart';
 const String endpointUrl = "https://dvb-i.net/production/services.php/de";
 
 Future<void> main() async {
-  runApp(const MainApp());
+  runApp(StreamProvider(
+      catchError: (_, error) => error.toString(),
+      create: (context) => DVBI(endpointUrl: endpointUrl).getServiceStream(),
+      initialData: const [],
+      child: const MainApp()));
 }
 
 class MainApp extends StatelessWidget {
@@ -14,15 +18,12 @@ class MainApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MultiProvider(
-        providers: [
-          Provider<DVBI>(create: (context) => DVBI(endpointUrl: endpointUrl)),
-          StreamProvider(
-              create: (context) =>
-                  DVBI(endpointUrl: endpointUrl).getServiceStream(),
-              initialData: const []),
-        ],
-        child: MaterialApp(
-            title: 'Video Demo', home: MyCarousel(items: const [])));
+    return Consumer<ServiceElem>(
+        builder: (context, ServiceElem service, child) => MyCarousel(items: [
+              Image(
+                  image: NetworkImage(
+                service.logo.toString(),
+              ))
+            ]));
   }
 }
