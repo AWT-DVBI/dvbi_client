@@ -69,6 +69,7 @@ class RelatedMaterialElem {
 
   Uri getLogo({int? width}) {
     if (howRelated == HowRelatedEnum.logo) {
+      //TODO: tva suffix not in standard
       String uriText =
           xml.getElement("MediaLocator")!.getElement("tva:MediaUri")!.innerText;
       Uri uri = Uri.parse(uriText);
@@ -165,8 +166,12 @@ class ServiceElem {
       XmlElement? contentGuideSource = data.getElement("ContentGuideSource");
 
       if (contentGuideSource == null && contentGuideSourceList != null) {
-        String ref = data.getElement("ContentGuideSourceRef")!.innerText;
+        String? ref = data.getElement("ContentGuideSourceRef")?.innerText;
         for (final elem in contentGuideSourceList) {
+          if (ref == null) {
+            break;
+          }
+
           if (elem.getAttribute("CGSID") == ref) {
             contentGuideSource = elem;
           }
