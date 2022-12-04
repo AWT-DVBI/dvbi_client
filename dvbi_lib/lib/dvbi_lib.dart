@@ -2,6 +2,8 @@
 
 library dvbi_lib;
 
+import 'dart:io';
+
 import 'package:http/http.dart' as http;
 import 'package:xml/xml.dart';
 
@@ -68,7 +70,7 @@ class RelatedMaterialElem {
   Uri getLogo({int? width}) {
     if (howRelated == HowRelatedEnum.logo) {
       String uriText =
-          xml.getElement("MediaLocator")!.getElement("MediaUri")!.innerText;
+          xml.getElement("MediaLocator")!.getElement("tva:MediaUri")!.innerText;
       Uri uri = Uri.parse(uriText);
 
       if (width != null) {
@@ -176,7 +178,7 @@ class ServiceElem {
           : null;
     }
 
-    List<RelatedMaterialElem> relatedMaterial = List.empty();
+    List<RelatedMaterialElem> relatedMaterial = [];
     {
       for (XmlElement rd in data.findAllElements("RelatedMaterial")) {
         relatedMaterial.add(RelatedMaterialElem.parse(data: rd));
@@ -202,36 +204,44 @@ class ServiceElem {
 }
 
 class DVBI {
-  final String endpointUrl;
+  final Uri endpointUrl;
   final http.Client httpClient;
 
   DVBI({required this.endpointUrl}) : httpClient = http.Client();
 
-  Future<http.Response> getHttp(String endpointUrl) {
-    return http.get(Uri.parse(endpointUrl));
+  void close() {
+    httpClient.close();
   }
 
-  Stream<ServiceElem> getServiceStream() async* {
+  Stream<ServiceElem> get stream async* {
     print(endpointUrl);
-    final response = await getHttp(endpointUrl);
+    final String data;
 
-    if (response.statusCode == 200) {
-      final serviceList =
-          XmlDocument.parse(response.body).getElement("ServiceList")!;
+    if (endpointUrl.isScheme("HTTP") || endpointUrl.isScheme("HTTPS")) {
+      var res = await http.get(endpointUrl);
 
-      final services = serviceList.findAllElements("Service");
-      final List<XmlElement>? contentGuideSourceList = serviceList
-          .getElement("ContentGuideSourceList")
-          ?.childElements
-          .toList();
-
-      for (var serviceData in services) {
-        yield ServiceElem.parse(
-            contentGuideSourceList: contentGuideSourceList, data: serviceData);
+      if (res.statusCode != 200) {
+        throw DVBIException(
+            "Status code invalid. Code: ${res.statusCode} Reason: ${res.reasonPhrase}");
       }
+      data = res.body;
     } else {
-      throw DVBIException(
-          "Status code invalid. Code: ${response.statusCode} Reason: ${response.reasonPhrase}");
+      var res = File.fromUri(endpointUrl);
+
+      data = await res.readAsString();
+    }
+
+    final serviceList = XmlDocument.parse(data).getElement("ServiceList")!;
+
+    final services = serviceList.findAllElements("Service");
+    final List<XmlElement>? contentGuideSourceList = serviceList
+        .getElement("ContentGuideSourceList")
+        ?.childElements
+        .toList();
+
+    for (var serviceData in services) {
+      yield ServiceElem.parse(
+          contentGuideSourceList: contentGuideSourceList, data: serviceData);
     }
   }
 }
