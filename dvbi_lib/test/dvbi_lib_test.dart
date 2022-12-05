@@ -1,15 +1,14 @@
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:dvbi_lib/dvbi_lib.dart';
+import 'dart:io';
 
 Future<void> main() async {
   print("hello");
 
   var t1 = ServiceListManager();
-  await t1.testerFun();
-
-  var t2 = ServiceObject(
-      "serviceName", "mpdURI", "channelBannerURI", PlayListObject());
+  print("object");
+  await t1.getXmlStream();
 
   test('adds one to input values', () {
     final calculator = Calculator();

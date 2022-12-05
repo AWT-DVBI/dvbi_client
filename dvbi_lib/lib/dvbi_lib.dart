@@ -1,7 +1,11 @@
 library dvbi_lib;
 
+import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:xml/xml.dart';
+import 'package:path/path.dart' as p;
+import 'dart:io';
+import 'package:xml/xml_events.dart';
 
 /// A Calculator.
 class Calculator {
@@ -11,13 +15,35 @@ class Calculator {
 
 class ServiceListManager {
   //field
-
-  String endpointUrl = "https://dvb-i.net/production/services.php/de";
-
   //functions of servicelistmanager class
 
-  Future<http.Response> fetchServiceList() {
-    return http.get(Uri.parse(endpointUrl));
+  Future<String> readEndpoint() async {
+    print("object in readendpoint");
+    var filePath = p.join(Directory.current.path, 'endpointurl.txt');
+    print(filePath);
+    File file = File(filePath);
+    var fileContent = await file.readAsString();
+
+    return fileContent;
+  }
+
+  Future<void> getXmlStream() async {
+    String endpoint = await readEndpoint();
+    final url = Uri.parse(endpoint);
+    final request = await HttpClient().getUrl(url);
+    final response = await request.close();
+    await response
+        .transform(utf8.decoder)
+        .toXmlEvents()
+        .normalizeEvents()
+        .forEachEvent(onText: (event) => print(event.text));
+  }
+
+  Future<http.Response> fetchServiceList() async {
+    String endpoint = await readEndpoint();
+    print("object");
+    print(endpoint);
+    return await http.get(Uri.parse(endpoint));
   }
 
   Future<XmlDocument> getServiceListXml() async {
@@ -45,17 +71,6 @@ class ServiceListManager {
     print("Done");
   }
 
-  Future<String> getArdLiveStream() async {
-    print("get ardvmpd streams");
-    final document = await getServiceListXml();
-    var res = document.findAllElements("Service");
-
-    //res.forEach((node) => print(node.getElement("ProviderName")));
-    //res.forEach((node) => print(node.getElement("ServiceInstance")));
-
-    return "https://livesim.dashif.org/livesim/mup_30/testpic_2s/Manifest.mpd"; //change to res
-  }
-
   Future<void> testerFun() async {
     print("testerFun");
     final document = await getServiceListXml();
@@ -68,7 +83,6 @@ class ServiceListManager {
     */
     //mdpUri
     /*
-    res
         .map((e) => e
             .getElement("ServiceInstance")
             ?.getElement("DASHDeliveryParameters")
