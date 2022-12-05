@@ -104,12 +104,16 @@ class ServiceListManager {
   }
 }
 
-class PlayListObject {}
+class PlayListObject {
+//fetch program later
+
+}
 
 /**
  * class that contains meta information about each service form a servicelist 
  */
 class ServiceObject {
+  //getter
   String serviceName = "";
   String mpdURI = "";
   String channelBannerURI = "";
@@ -129,4 +133,5 @@ ServiceObject
 •	Servicename(channelname)
 •	contentUrl -> playlistObject (what is running on different channels)
 Uri -> channel banner
+
  */
