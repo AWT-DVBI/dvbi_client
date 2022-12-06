@@ -27,18 +27,32 @@ class ServiceListManager {
     return fileContent;
   }
 
-  Future<void> getXmlStream() async {
+  Future<Stream<List<XmlEvent>>> getXmlStream() async {
     String endpoint = await readEndpoint();
     final url = Uri.parse(endpoint);
     final request = await HttpClient().getUrl(url);
     final response = await request.close();
-    await response
-        .transform(utf8.decoder)
-        .toXmlEvents()
-        .normalizeEvents()
-        .forEachEvent(onText: (event) => print(event.text));
+    return response.transform(utf8.decoder).toXmlEvents();
   }
 
+  Future<void> showChannelStream() async {
+    var mystream = await getXmlStream();
+    print("in showchannelstream");
+
+    await mystream
+        .selectSubtreeEvents((e) => e.name == "Service")
+        .toXmlNodes()
+        .flatten()
+        .forEach((e) => print(e.getElement("ServiceName")?.innerText));
+
+    /*mystream
+        .selectSubtreeEvents(((event) => event.name == "Service"))
+        .toXmlNodes()
+        .flatten()
+        .toList();*/
+  }
+
+  //old
   Future<http.Response> fetchServiceList() async {
     String endpoint = await readEndpoint();
     print("object");
@@ -46,6 +60,7 @@ class ServiceListManager {
     return await http.get(Uri.parse(endpoint));
   }
 
+  //old
   Future<XmlDocument> getServiceListXml() async {
     var response = await fetchServiceList();
 
@@ -62,6 +77,7 @@ class ServiceListManager {
     }
   }
 
+  //old
   Future<void> showChannels() async {
     final document = await getServiceListXml();
     final serviceNames = document.findAllElements('ServiceName');
@@ -71,6 +87,7 @@ class ServiceListManager {
     print("Done");
   }
 
+  //old
   Future<void> testerFun() async {
     print("testerFun");
     final document = await getServiceListXml();
@@ -106,6 +123,7 @@ class ServiceListManager {
     //Playlistobj
   }
 
+  //old
   /**
    *  transform xml to List of Serviceobjects 
    */

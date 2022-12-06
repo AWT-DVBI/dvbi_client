@@ -8,7 +8,7 @@ Future<void> main() async {
 
   var t1 = ServiceListManager();
   print("object");
-  await t1.getXmlStream();
+  await t1.showChannelStream();
 
   test('adds one to input values', () {
     final calculator = Calculator();
