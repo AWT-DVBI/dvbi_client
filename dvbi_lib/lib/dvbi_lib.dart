@@ -6,6 +6,10 @@ import 'dart:io';
 
 import 'package:http/http.dart' as http;
 import 'package:xml/xml.dart';
+import 'package:logging/logging.dart';
+import 'package:collection/collection.dart';
+
+final Logger _log = Logger("dvbi_lib");
 
 class DVBIException implements Exception {
   String cause;
@@ -144,11 +148,13 @@ class ServiceElem {
     // Parse dashmpd
     Uri? dashmpd;
     {
-      XmlElement? dashDeliveryParameters = serviceInstances.firstWhere(
-          (element) => element.getElement("DASHDeliveryParameters") != null);
+      XmlElement? dashDeliveryParameters = serviceInstances
+          .firstWhereOrNull(
+              (element) => element.getElement("DASHDeliveryParameters") != null)
+          ?.firstElementChild;
 
       XmlElement? uriBasedLocation =
-          dashDeliveryParameters.getElement("UriBasedLocation");
+          dashDeliveryParameters?.getElement("UriBasedLocation");
 
       bool correctType =
           uriBasedLocation?.getAttribute("contentType").toString() ==
@@ -157,6 +163,12 @@ class ServiceElem {
       if (correctType) {
         String? uri = uriBasedLocation?.getElement("URI")!.innerText;
         dashmpd = uri != null ? Uri.parse(uri) : null;
+      } else {
+        _log.fine("==== Unsupported dash type ====");
+        _log.fine("uriBasedLocation: \n ${uriBasedLocation?.toXmlString()}");
+
+        _log.fine(
+            "dashDeliveryParameters: \n ${dashDeliveryParameters?.toXmlString()}");
       }
     }
 
