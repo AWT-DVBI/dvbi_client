@@ -219,7 +219,6 @@ class DVBI {
   }
 
   Stream<ServiceElem> get stream async* {
-    print(endpointUrl);
     final String data;
 
     if (endpointUrl.isScheme("HTTP") || endpointUrl.isScheme("HTTPS")) {
