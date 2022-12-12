@@ -18,6 +18,27 @@ class DVBIException implements Exception {
 
 class PlayListObject {}
 
+class ProgrammScheduleInfo {
+//get for a specific service programm ->request endpoint?id?now->parse xml
+//aktuelles programm und nächstes oder 10 nächsten/vorherigen
+
+/*
+req: 
+1.get for specific service the endpoint
+2. get the sid
+
+
+
+Programminfo event -> prefious, current , next
+-> titel
+-> bild
+-> programm id for req more info if wanted
+-> beschreibung ?keine verfügbar
+
+ */
+
+}
+
 class ContentGuideSourceElem {
   final Uri scheduleInfoEndpoint;
   final Uri? programInfoEndpoint;
