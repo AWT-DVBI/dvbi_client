@@ -16,7 +16,11 @@ class DVBIException implements Exception {
   DVBIException(this.cause);
 }
 
-class PlayListObject {}
+class PlayListObject {
+  //TODO
+}
+
+//TODO: schedule info etc
 
 class ContentGuideSourceElem {
   final Uri scheduleInfoEndpoint;
@@ -79,7 +83,7 @@ class RelatedMaterialElem {
       Uri uri = Uri.parse(uriText);
 
       if (width != null) {
-        uri.replace(queryParameters: {"width": width});
+        uri.replace(queryParameters: {"width": width}); //TODO: what widths are supported
       }
 
       return uri;
@@ -161,8 +165,8 @@ class ServiceElem {
               "application/dash+xml";
 
       if (correctType) {
-        String? uri = uriBasedLocation?.getElement("URI")!.innerText;
-        dashmpd = uri != null ? Uri.parse(uri) : null;
+        String uri = uriBasedLocation!.getElement("URI")!.innerText;
+        dashmpd = Uri.parse(uri);
       } else {
         _log.fine("==== Unsupported dash type ====");
         _log.fine("uriBasedLocation: \n ${uriBasedLocation?.toXmlString()}");
@@ -230,9 +234,8 @@ class DVBI {
     httpClient.close();
   }
 
-  Stream<ServiceElem> get stream async* {
+  Future<XmlElement> getServiceList() async {
     final String data;
-
     if (endpointUrl.isScheme("HTTP") || endpointUrl.isScheme("HTTPS")) {
       var res = await http.get(endpointUrl);
 
@@ -246,16 +249,28 @@ class DVBI {
 
       data = await res.readAsString();
     }
+    return XmlDocument.parse(data).getElement("ServiceList")!;
+  }
 
-    final serviceList = XmlDocument.parse(data).getElement("ServiceList")!;
-
+  Future<List<ServiceElem>> get serviceElems async{
+    final XmlElement serviceList = await getServiceList();
     final services = serviceList.findAllElements("Service");
     final List<XmlElement>? contentGuideSourceList = serviceList
         .getElement("ContentGuideSourceList")
         ?.childElements
         .toList();
+    return services.map((service) => ServiceElem.parse(contentGuideSourceList: contentGuideSourceList, data: service)).toList();
+  }
 
+  Stream<ServiceElem> get stream async* {
+    final serviceList = await getServiceList();
+    final services = serviceList.findAllElements("Service");
+    final List<XmlElement>? contentGuideSourceList = serviceList
+        .getElement("ContentGuideSourceList")
+        ?.childElements
+        .toList();
     for (var serviceData in services) {
+      await Future.delayed(const Duration(milliseconds: 10));
       yield ServiceElem.parse(
           contentGuideSourceList: contentGuideSourceList, data: serviceData);
     }
