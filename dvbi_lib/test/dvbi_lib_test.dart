@@ -86,6 +86,14 @@ Future<void> main() async {
       ?.getElement("Title")
       ?.innerText);
 
+  var mypsi = ProgramScheduleInfo.parse(data: document);
+  print("testAttribute");
+  print(mypsi.current.pid);
+  print(mypsi.current.title);
+  print(mypsi.current.mediaUrl);
+  print(mypsi.current.startTime);
+  print(mypsi.current.programDuration);
+
   test('adds one to input values', () {
     final calculator = Calculator();
     expect(calculator.addOne(2), 3);
@@ -101,15 +109,37 @@ class ProgramScheduleInfo {
   ProgramScheduleInfo({required this.current, required this.next});
 
   factory ProgramScheduleInfo.parse({required XmlDocument data}) {
-    //TODO
-    XmlElement dataProg = data.getElement("name")!;
-    XmlElement dataSchedule = data.getElement("name")!;
+    //TODO give -> programInformation obj for both
+    XmlElement dataProgCurrent = data
+        .getElement("TVAMain")!
+        .getElement("ProgramDescripProgramInformationtion")!
+        .getElement("ProgramInformationTable")!
+        .getElement("ProgramInformation")!;
+    XmlElement dataScheduleCurrent = data
+        .getElement("TVAMain")!
+        .getElement("ProgramDescription")!
+        .getElement("ProgramLocationTable")!
+        .getElement("Schedule")!
+        .getElement("ScheduleEvent")!;
+
+    //TODO how to decide that its the next? id or just pass second
+    XmlElement dataProgNext = data
+        .getElement("TVAMain")!
+        .getElement("ProgramDescription")!
+        .getElement("ProgramInformationTable")!
+        .getElement("")!;
+    XmlElement dataScheduleNext = data
+        .getElement("TVAMain")!
+        .getElement("ProgramDescription")!
+        .getElement("ProgramLocationTable")!
+        .getElement("Schedule")!
+        .getElement("ScheduleEvent")!;
 
     //TODO
-    Program current =
-        Program.parse(dataProg: dataProg, dataSchedule: dataSchedule);
+    Program current = Program.parse(
+        dataProg: dataProgCurrent, dataSchedule: dataScheduleCurrent);
     Program next =
-        Program.parse(dataProg: dataProg, dataSchedule: dataSchedule);
+        Program.parse(dataProg: dataProgNext, dataSchedule: dataScheduleNext);
     return ProgramScheduleInfo(current: current, next: next);
   }
 }
@@ -125,7 +155,7 @@ class Program {
   String mediaUrl;
   //schedule PublishedStartTime-- erkennen über id
   String startTime;
-  String endTime;
+
   // PublishedDuration
   String programDuration;
 
@@ -135,38 +165,30 @@ class Program {
       required this.synopsis,
       required this.mediaUrl,
       required this.startTime,
-      required this.endTime,
       required this.programDuration});
 
   /**
-   * xmlElemet start at level ProgramInformation=dataprog & dataschedule=programlocationtable
+   * xmlElemet start at level ProgramInformation=dataprog & dataschedule=programlocationtable/ScheduleEvent
    */
   factory Program.parse(
       {required XmlElement dataProg, required XmlElement dataSchedule}) {
-    String pid =
-        dataProg.getElement("ProgramInformation")!.getAttribute("programId")!;
-    String title = dataProg
-        .getElement("ProgramInformation")!
-        .getElement("BasicDescription")!
-        .getElement("Title")!
-        .innerText;
+    String pid = dataProg.getAttribute("programId")!;
+    String title =
+        dataProg.getElement("BasicDescription")!.getElement("Title")!.innerText;
     String? synopsis = dataProg
-        .getElement("ProgramInformation")!
         .getElement("BasicDescription")!
         .getElement("Synopsis")!
         .innerText;
-    //todo evtl uri
-    String mediaUrl = dataProg
-        .getElement("ProgramInformation")!
-        .getElement("BasicDescription")!
-        .getElement("Title")!
-        .innerText;
+    //TODO evtl uri
+    String mediaUrl =
+        dataProg.getElement("BasicDescription")!.getElement("Title")!.innerText;
 
-    String startTime = dataSchedule.getAttribute("start")!;
-    String endTime = dataSchedule.getAttribute("end")!;
-
-    //toDo
-    String programDuration = dataSchedule.getElement("end")!.innerText;
+    //TODO
+    //scheduleEvent different
+    String startTime = dataSchedule.getElement("PublishedStartTime")!.innerText;
+    //TODO
+    String programDuration =
+        dataSchedule.getElement("PublishedDuration")!.innerText;
 
     return Program(
         pid: pid,
@@ -174,7 +196,6 @@ class Program {
         synopsis: synopsis,
         mediaUrl: mediaUrl,
         startTime: startTime,
-        endTime: endTime,
         programDuration: programDuration);
   }
 }
