@@ -123,6 +123,7 @@ Future<void> main() async {
 
 /**
  * for now_next = true programinfo xml-parser
+ * more info see dvbi docs - 6.5.3 Now/Next Filtered Schedule Request
  */
 class ProgramScheduleInfo {
   Program current; //member of now
