@@ -72,20 +72,29 @@ Future<void> main() async {
     </ProgramDescription>
 </TVAMain>''';
 
+//get now_next info parser
   final document = XmlDocument.parse(myxml);
 
-  //print(document.toString());
+  //TODO check if first and last can be same if only one element
+  Iterable<XmlElement> scheduleArr = document
+      .getElement("TVAMain")!
+      .getElement("ProgramDescription")!
+      .getElement("ProgramLocationTable")!
+      .getElement("Schedule")!
+      .childElements;
 
-  XmlElement? e1 = document.getElement("TVAMain");
+  print(scheduleArr.length);
 
-  print(e1
-      ?.getElement("ProgramDescription")
-      ?.getElement("ProgramInformationTable")
-      ?.getElement("ProgramInformation")
-      ?.getElement("BasicDescription")
-      ?.getElement("Title")
-      ?.innerText);
+  XmlElement current = scheduleArr.first;
+  XmlElement next = scheduleArr.last;
 
+  print(current.getElement("PublishedStartTime"));
+  print(next.getElement("PublishedStartTime"));
+
+  print("Test1 ende");
+  //second node
+
+  print("----");
   var mypsi = ProgramScheduleInfo.parse(data: document);
   print("testAttribute");
   print(mypsi.current.pid);
@@ -93,6 +102,16 @@ Future<void> main() async {
   print(mypsi.current.mediaUrl);
   print(mypsi.current.startTime);
   print(mypsi.current.programDuration);
+  print(mypsi.current.synopsis);
+
+  print("----");
+  print("testAttribute");
+  print(mypsi.next.pid);
+  print(mypsi.next.title);
+  print(mypsi.next.mediaUrl);
+  print(mypsi.next.startTime);
+  print(mypsi.next.programDuration);
+  print(mypsi.next.synopsis);
 
   test('adds one to input values', () {
     final calculator = Calculator();
@@ -102,6 +121,9 @@ Future<void> main() async {
   });
 }
 
+/**
+ * for now_next = true programinfo xml-parser
+ */
 class ProgramScheduleInfo {
   Program current; //member of now
   Program next; //member 0f next
@@ -109,33 +131,27 @@ class ProgramScheduleInfo {
   ProgramScheduleInfo({required this.current, required this.next});
 
   factory ProgramScheduleInfo.parse({required XmlDocument data}) {
-    //TODO give -> programInformation obj for both
-    XmlElement dataProgCurrent = data
+    //TODO check if now & next are present-> if first and last can be same
+
+    Iterable<XmlElement> programArr = data
         .getElement("TVAMain")!
-        .getElement("ProgramDescripProgramInformationtion")!
+        .getElement("ProgramDescription")!
         .getElement("ProgramInformationTable")!
-        .getElement("ProgramInformation")!;
-    XmlElement dataScheduleCurrent = data
+        .childElements; //ProgramInformation
+
+    XmlElement dataProgCurrent = programArr.first;
+    XmlElement dataProgNext = programArr.last;
+
+    Iterable<XmlElement> scheduleArr = data
         .getElement("TVAMain")!
         .getElement("ProgramDescription")!
         .getElement("ProgramLocationTable")!
         .getElement("Schedule")!
-        .getElement("ScheduleEvent")!;
+        .childElements; //ScheduleEvent
 
-    //TODO how to decide that its the next? id or just pass second
-    XmlElement dataProgNext = data
-        .getElement("TVAMain")!
-        .getElement("ProgramDescription")!
-        .getElement("ProgramInformationTable")!
-        .getElement("")!;
-    XmlElement dataScheduleNext = data
-        .getElement("TVAMain")!
-        .getElement("ProgramDescription")!
-        .getElement("ProgramLocationTable")!
-        .getElement("Schedule")!
-        .getElement("ScheduleEvent")!;
+    XmlElement dataScheduleCurrent = scheduleArr.first;
+    XmlElement dataScheduleNext = scheduleArr.last;
 
-    //TODO
     Program current = Program.parse(
         dataProg: dataProgCurrent, dataSchedule: dataScheduleCurrent);
     Program next =
@@ -180,13 +196,15 @@ class Program {
         .getElement("Synopsis")!
         .innerText;
     //TODO evtl uri
-    String mediaUrl =
-        dataProg.getElement("BasicDescription")!.getElement("Title")!.innerText;
+    String mediaUrl = dataProg
+        .getElement("BasicDescription")!
+        .getElement("RelatedMaterial")!
+        .getElement("MediaLocator")!
+        .getElement("MediaUri")!
+        .innerText;
 
-    //TODO
-    //scheduleEvent different
     String startTime = dataSchedule.getElement("PublishedStartTime")!.innerText;
-    //TODO
+
     String programDuration =
         dataSchedule.getElement("PublishedDuration")!.innerText;
 
