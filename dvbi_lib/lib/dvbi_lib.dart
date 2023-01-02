@@ -384,13 +384,16 @@ class DVBI {
    * req for programscheduleInfo
    */
   Stream<ProgramScheduleInfo_nownext> programScheduleInfoNowNext(
-      scheduleInfoEndpoint, sid) async* {
+      String scheduleInfoEndpoint, String sid) async* {
     final String xmlData;
 
-    if (scheduleInfoEndpoint.isScheme("HTTP") ||
-        scheduleInfoEndpoint.isScheme("HTTPS")) {
-      var endpoint = scheduleInfoEndpoint + "?" + sid + "now_next=true";
-      print(endpoint + "in" + "pSI function");
+    if (Uri.parse(scheduleInfoEndpoint).isScheme("HTTP") ||
+        Uri.parse(scheduleInfoEndpoint).isScheme("HTTPS")) {
+      // String endpoint =scheduleInfoEndpoint + '?' + sid + '&' + 'now_next=true';
+      String endpoint = '$scheduleInfoEndpoint?sid=$sid&now_next=true';
+
+      print(endpoint + " in" + "pSI function");
+
       var res = await http.get(Uri.parse(endpoint));
 
       if (res.statusCode != 200) {
@@ -399,6 +402,7 @@ class DVBI {
       }
       xmlData = res.body;
     } else {
+      print("in else?");
       var res = File.fromUri(endpointUrl);
 
       xmlData = await res.readAsString();

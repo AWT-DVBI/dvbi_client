@@ -15,9 +15,13 @@ Future<void> main() async {
   if (first.contentGuideSourceElem?.scheduleInfoEndpoint != null) {
     var mytest = first.contentGuideSourceElem?.scheduleInfoEndpoint;
 
-    var res2 = dvbi.programScheduleInfoNowNext(mytest, first.uniqueIdentifier);
+    var res2 = await dvbi.programScheduleInfoNowNext(mytest.toString(),
+        first.uniqueIdentifier); //eig muss contentguideServiceRef hinzu //TODO
 
     var res3 = await res2.first;
+
+    print(res3.current.title);
+
     print(mytest);
   }
 
