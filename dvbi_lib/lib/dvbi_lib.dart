@@ -16,8 +16,6 @@ class DVBIException implements Exception {
   DVBIException(this.cause);
 }
 
-class PlayListObject {}
-
 class ProgrammScheduleInfo {
 //get for a specific service programm ->request endpoint?id?now->parse xml
 //aktuelles programm und nächstes oder 10 nächsten/vorherigen
@@ -37,6 +35,106 @@ Programminfo event -> prefious, current , next
 
  */
 
+}
+
+/**
+ * for now_next = true programinfo xml-parser
+ * more info see dvbi docs - 6.5.3 Now/Next Filtered Schedule Request
+ * req query -> <ScheduleInfoEndpoint>?sid=<service_id>&now_next=true
+ * <service_id> -> from serviceList UniqueIdentifier or the ContentGuideServiceRef where CGS precendence over Uid
+ */
+class ProgramScheduleInfo_nownext {
+  Program current; //member of now
+  Program next; //member 0f next
+
+  ProgramScheduleInfo_nownext({required this.current, required this.next});
+
+  factory ProgramScheduleInfo_nownext.parse({required XmlDocument data}) {
+    //TODO check if now & next are present-> if first and last can be same
+
+    Iterable<XmlElement> programArr = data
+        .getElement("TVAMain")!
+        .getElement("ProgramDescription")!
+        .getElement("ProgramInformationTable")!
+        .childElements; //ProgramInformation
+
+    XmlElement dataProgCurrent = programArr.first;
+    XmlElement dataProgNext = programArr.last;
+
+    Iterable<XmlElement> scheduleArr = data
+        .getElement("TVAMain")!
+        .getElement("ProgramDescription")!
+        .getElement("ProgramLocationTable")!
+        .getElement("Schedule")!
+        .childElements; //ScheduleEvent
+
+    XmlElement dataScheduleCurrent = scheduleArr.first;
+    XmlElement dataScheduleNext = scheduleArr.last;
+
+    Program current = Program.parse(
+        dataProg: dataProgCurrent, dataSchedule: dataScheduleCurrent);
+    Program next =
+        Program.parse(dataProg: dataProgNext, dataSchedule: dataScheduleNext);
+    return ProgramScheduleInfo_nownext(current: current, next: next);
+  }
+}
+
+// prgramminfo
+class Program {
+  //ProgramInformation programId i.e.="crid://zdf.de/metadata/broadcast_item/83791/"
+  String pid;
+  String title;
+  //program description Synopsis
+  String synopsis;
+  //pictureUrl-MediaUri
+  String mediaUrl;
+  //schedule PublishedStartTime-- erkennen über id
+  String startTime;
+
+  // PublishedDuration
+  String programDuration;
+
+  Program(
+      {required this.pid,
+      required this.title,
+      required this.synopsis,
+      required this.mediaUrl,
+      required this.startTime,
+      required this.programDuration});
+
+  /**
+   * xmlElemet start at level ProgramInformation=dataprog & dataschedule=programlocationtable/ScheduleEvent
+   */
+  factory Program.parse(
+      {required XmlElement dataProg, required XmlElement dataSchedule}) {
+    String pid = dataProg.getAttribute("programId")!;
+    String title =
+        dataProg.getElement("BasicDescription")!.getElement("Title")!.innerText;
+    String? synopsis = dataProg
+        .getElement("BasicDescription")!
+        .getElement("Synopsis")!
+        .innerText;
+    //TODO evtl uri
+    String mediaUrl = dataProg
+        .getElement("BasicDescription")!
+        .getElement("RelatedMaterial")!
+        .getElement("MediaLocator")!
+        .getElement("MediaUri")!
+        .innerText;
+
+    String startTime = dataSchedule.getElement("PublishedStartTime")!.innerText;
+
+    String programDuration =
+        dataSchedule.getElement("PublishedDuration")!.innerText;
+
+    return Program(
+        pid: pid,
+        title: title,
+        synopsis: synopsis,
+        mediaUrl: mediaUrl,
+        startTime: startTime,
+        programDuration: programDuration);
+  }
 }
 
 class ContentGuideSourceElem {
@@ -126,7 +224,7 @@ class ServiceElem {
   final Uri? dashmpd;
   final Uri? logo;
 
-  PlayListObject? playListObject;
+  ProgramScheduleInfo_nownext? programinfo;
 
   ServiceElem(
       {required this.serviceName,
@@ -280,5 +378,35 @@ class DVBI {
       yield ServiceElem.parse(
           contentGuideSourceList: contentGuideSourceList, data: serviceData);
     }
+  }
+
+  /**
+   * req for programscheduleInfo
+   */
+  Stream<ProgramScheduleInfo_nownext> programScheduleInfoNowNext(
+      scheduleInfoEndpoint, sid) async* {
+    final String xmlData;
+
+    if (scheduleInfoEndpoint.isScheme("HTTP") ||
+        scheduleInfoEndpoint.isScheme("HTTPS")) {
+      var endpoint = scheduleInfoEndpoint + "?" + sid + "now_next=true";
+      print(endpoint + "in" + "pSI function");
+      var res = await http.get(Uri.parse(endpoint));
+
+      if (res.statusCode != 200) {
+        throw DVBIException(
+            "Status code invalid. Code: ${res.statusCode} Reason: ${res.reasonPhrase}");
+      }
+      xmlData = res.body;
+    } else {
+      var res = File.fromUri(endpointUrl);
+
+      xmlData = await res.readAsString();
+    }
+
+    final scheduleData = XmlDocument.parse(xmlData);
+
+    //return as stream
+    yield ProgramScheduleInfo_nownext.parse(data: scheduleData);
   }
 }

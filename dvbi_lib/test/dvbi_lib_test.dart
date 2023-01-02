@@ -12,6 +12,17 @@ Future<void> main() async {
 
   var first = await services.first;
 
+  if (first.contentGuideSourceElem?.scheduleInfoEndpoint != null) {
+    var mytest = first.contentGuideSourceElem?.scheduleInfoEndpoint;
+
+    var res2 = dvbi.programScheduleInfoNowNext(mytest, first.uniqueIdentifier);
+
+    var res3 = await res2.first;
+    print(mytest);
+  }
+
+  print("----");
+
   JsonEncoder encoder = const JsonEncoder.withIndent('  ');
   String prettyprint = encoder.convert(first);
   print(prettyprint);
