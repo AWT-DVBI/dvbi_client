@@ -1,25 +1,45 @@
+// ignore_for_file: unused_import
+
 import 'package:flutter/material.dart';
-import 'carousel.dart';
+import 'video_carousel.dart';
 import 'package:dvbi_lib/dvbi_lib.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'dart:developer' as dev;
+import 'package:flutter/services.dart' show rootBundle;
 
 const String endpointUrl = "https://dvb-i.net/production/services.php/de";
-// We create a "provider", which will store a value (here "Hello world").
-// By using a provider, this allows us to mock/override the value exposed.
-final helloWorldProvider = Provider((_) => 'Hello world');
 
 // We are using state management platform riverpod:
 // https://riverpod.dev/de/docs/concepts/providers
 
-final serviceProvider = StreamProvider.autoDispose((ref) {
-  final dvbi = DVBI(endpointUrl: Uri.parse(endpointUrl));
+final serviceProvider = StreamProvider.autoDispose((ref) async* {
+  String data = await rootBundle.loadString("assets/services.xml");
+  final dvbi = DVBI(data: data);
 
   ref.onDispose(() {
     // Schließt den stream, wenn der Zustand des Providers zerstört wird.
     dvbi.close();
   });
 
-  return dvbi.stream;
+  //var allServiceElems = const <ServiceElem>[];
+  await for (final serviceElem in dvbi.stream) {
+    if (serviceElem.dashmpd == null) {
+      continue;
+    }
+    //allServiceElems = [...allServiceElems, serviceElem];
+    //yield allServiceElems;
+    yield serviceElem;
+  }
+});
+
+final serivceListProvider = StreamProvider.autoDispose((ref) async* {
+  final serviceStream = ref.watch(serviceProvider.stream);
+
+  List<ServiceElem> videoList = const [];
+  await for (final item in serviceStream) {
+    videoList = [...videoList, item];
+    yield videoList;
+  }
 });
 
 void main() {
@@ -27,7 +47,7 @@ void main() {
     // For widgets to be able to read providers, we need to wrap the entire
     // application in a "ProviderScope" widget.
     // This is where the state of our providers will be stored.
-    ProviderScope(
+    const ProviderScope(
       child: MyApp(),
     ),
   );
@@ -35,17 +55,10 @@ void main() {
 
 // Extend ConsumerWidget instead of StatelessWidget, which is exposed by Riverpod
 class MyApp extends ConsumerWidget {
+  const MyApp({super.key});
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final AsyncValue<ServiceElem> serviceStream = ref.watch(serviceProvider);
-
-    return MaterialApp(
-        home: MyCarousel(
-            items: serviceStream.when(
-                data: (item) =>
-                    ([Image(image: NetworkImage(item.logo!.toString()))]),
-                error: (e, st) => [Center(child: Text(e.toString()))],
-                loading: () =>
-                    [const Center(child: CircularProgressIndicator())])));
+    return const MaterialApp(home: VideoCarousel());
   }
 }

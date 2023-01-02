@@ -30,7 +30,7 @@ Future<void> main(List<String> args) async {
 
   Uri endpoint = Uri.parse(argResults["endpoint"]);
 
-  final dvbi = DVBI(endpointUrl: endpoint);
+  final dvbi = await DVBI().initialize(endpointUrl: endpoint);
   var services = dvbi.stream;
 
   JsonEncoder encoder = const JsonEncoder.withIndent('  ');

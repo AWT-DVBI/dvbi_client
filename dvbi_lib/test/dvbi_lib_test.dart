@@ -7,7 +7,7 @@ import 'package:dvbi_lib/dvbi_lib.dart';
 const String endpointUrl = "https://dvb-i.net/production/services.php/de";
 
 Future<void> main() async {
-  final dvbi = DVBI(endpointUrl: Uri.parse(endpointUrl));
+  final dvbi = await DVBI().initialize(endpointUrl: Uri.parse(endpointUrl));
   var services = dvbi.stream;
 
   var first = await services.first;

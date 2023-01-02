@@ -221,18 +221,13 @@ class ServiceElem {
 }
 
 class DVBI {
-  final Uri endpointUrl;
+  final String? data;
   final http.Client httpClient;
 
-  DVBI({required this.endpointUrl}) : httpClient = http.Client();
+  DVBI({this.data}) : httpClient = http.Client();
 
-  void close() {
-    httpClient.close();
-  }
-
-  Stream<ServiceElem> get stream async* {
-    final String data;
-
+  Future<DVBI> initialize({required endpointUrl}) async {
+    String data;
     if (endpointUrl.isScheme("HTTP") || endpointUrl.isScheme("HTTPS")) {
       var res = await http.get(endpointUrl);
 
@@ -247,7 +242,15 @@ class DVBI {
       data = await res.readAsString();
     }
 
-    final serviceList = XmlDocument.parse(data).getElement("ServiceList")!;
+    return DVBI(data: data);
+  }
+
+  void close() {
+    httpClient.close();
+  }
+
+  Stream<ServiceElem> get stream async* {
+    final serviceList = XmlDocument.parse(data!).getElement("ServiceList")!;
 
     final services = serviceList.findAllElements("Service");
     final List<XmlElement>? contentGuideSourceList = serviceList
