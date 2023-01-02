@@ -15,8 +15,10 @@ Future<void> main() async {
   if (first.contentGuideSourceElem?.scheduleInfoEndpoint != null) {
     var mytest = first.contentGuideSourceElem?.scheduleInfoEndpoint;
 
-    var res2 = await dvbi.programScheduleInfoNowNext(mytest.toString(),
-        first.uniqueIdentifier); //eig muss contentguideServiceRef hinzu //TODO
+    var res2 = await dvbi.programScheduleInfoNowNext(
+        mytest.toString(),
+        first
+            .uniqueIdentifier); //eig muss contentguideServiceRef hinzu //TODO zu serviceelement und dann abfrage wenn cgSr da ist dann vllt uId ersetzen oder bei abfrage ändern
 
     var res3 = await res2.first;
 
