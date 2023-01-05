@@ -31,6 +31,10 @@ Future<void> main() async {
 
     //abfrage test für program info
 
+    //req with res3.current.pid & serviceElem.programinfoendpoint
+
+    //print respond json
+
   }
 
   print("----");
