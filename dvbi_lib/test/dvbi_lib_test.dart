@@ -3,6 +3,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'dart:convert';
 import 'package:dvbi_lib/dvbi_lib.dart';
+import 'package:pretty_json/pretty_json.dart';
 
 const String endpointUrl = "https://dvb-i.net/production/services.php/de";
 
@@ -10,8 +11,10 @@ Future<void> main() async {
   final dvbi = DVBI(endpointUrl: Uri.parse(endpointUrl));
   var services = dvbi.stream;
 
+  //list of services
   var first = await services.first;
 
+  //abfrage test für schedule info
   if (first.contentGuideSourceElem?.scheduleInfoEndpoint != null) {
     var mytest = first.contentGuideSourceElem?.scheduleInfoEndpoint;
 
@@ -22,9 +25,12 @@ Future<void> main() async {
 
     var res3 = await res2.first;
 
-    print(res3.current.title);
+    var json1 = res3.current.toJson();
 
-    print(mytest);
+    print(prettyJson(json1, indent: 2));
+
+    //abfrage test für program info
+
   }
 
   print("----");

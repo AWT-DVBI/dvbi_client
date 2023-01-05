@@ -135,6 +135,15 @@ class Program {
         startTime: startTime,
         programDuration: programDuration);
   }
+
+  Map<String, dynamic> toJson() => {
+        'programid': pid,
+        'title': title,
+        'synopsis': synopsis,
+        'mediaUrl': mediaUrl,
+        'startTime': startTime,
+        'programDuration': programDuration
+      };
 }
 
 class ContentGuideSourceElem {
