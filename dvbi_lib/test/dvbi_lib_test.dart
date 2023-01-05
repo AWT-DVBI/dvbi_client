@@ -2,10 +2,10 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart';
 import 'package:xml/xml.dart';
 import 'package:dvbi_lib/dvbi_lib.dart';
+import 'dart:convert';
+import 'package:pretty_json/pretty_json.dart';
 
 Future<void> main() async {
-  print("hello");
-
   var myxml = '''<?xml version="1.0"?>
 <TVAMain xmlns="urn:tva:metadata:2019" xmlns:mpeg7="urn:tva:mpeg7:2008" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xml:lang="de">
     <ProgramDescription>
@@ -16,7 +16,8 @@ Future<void> main() async {
                         <![CDATA[Mythos Concorde]]>
                     </Title>
                     <Synopsis length="medium" xml:lang="de">
-                        <![CDATA[Keine Beschreibung verfügbar]]>
+                        <![CDATA[Die Concorde gilt noch heute als technisches Meisterwerk. Obwohl ihr Betrieb sich bald als unrentabel erweist, fliegt sie jahrzehntelang. Bis ein tragischer Unfall alles verändert.]]>
+                    
                     </Synopsis>
                     <RelatedMaterial>
                         <HowRelated href="urn:tva:metadata:cs:HowRelatedCS:2012:19"/>
@@ -83,20 +84,14 @@ Future<void> main() async {
       .getElement("Schedule")!
       .childElements;
 
-  print(scheduleArr.length);
-
   XmlElement current = scheduleArr.first;
   XmlElement next = scheduleArr.last;
 
-  print(current.getElement("PublishedStartTime"));
-  print(next.getElement("PublishedStartTime"));
-
-  print("Test1 ende");
   //second node
 
   print("----");
   var mypsi = ProgramScheduleInfo.parse(data: document);
-  print("testAttribute");
+  /* print("testAttribute");
   print(mypsi.current.pid);
   print(mypsi.current.title);
   print(mypsi.current.mediaUrl);
@@ -112,6 +107,14 @@ Future<void> main() async {
   print(mypsi.next.startTime);
   print(mypsi.next.programDuration);
   print(mypsi.next.synopsis);
+*/
+
+  var json1 = mypsi.current.toJson();
+  var json2 = mypsi.next.toJson();
+
+  //prettyJson returns a string
+  print(prettyJson(json1, indent: 2));
+  print(prettyJson(json2, indent: 2));
 
   test('adds one to input values', () {
     final calculator = Calculator();
@@ -119,6 +122,11 @@ Future<void> main() async {
     expect(calculator.addOne(-7), -6);
     expect(calculator.addOne(0), 1);
   });
+}
+
+String getPrettyJSONString(jsonObject) {
+  var encoder = new JsonEncoder.withIndent("     ");
+  return encoder.convert(jsonObject);
 }
 
 /**
@@ -217,4 +225,13 @@ class Program {
         startTime: startTime,
         programDuration: programDuration);
   }
+
+  Map<String, dynamic> toJson() => {
+        'programid': pid,
+        'title': title,
+        'synopsis': synopsis,
+        'mediaUrl': mediaUrl,
+        'startTime': startTime,
+        'programDuration': programDuration
+      };
 }
