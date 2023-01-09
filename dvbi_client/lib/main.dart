@@ -21,13 +21,10 @@ final serviceProvider = StreamProvider.autoDispose((ref) async* {
     dvbi.close();
   });
 
-  //var allServiceElems = const <ServiceElem>[];
   await for (final serviceElem in dvbi.stream) {
     if (serviceElem.dashmpd == null) {
       continue;
     }
-    //allServiceElems = [...allServiceElems, serviceElem];
-    //yield allServiceElems;
     yield serviceElem;
   }
 });

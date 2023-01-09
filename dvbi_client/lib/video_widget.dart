@@ -9,9 +9,14 @@ import 'package:dvbi_lib/dvbi_lib.dart';
 import 'dart:developer' as dev;
 import 'package:collection/collection.dart';
 
-final videoProvider =
-    StreamProvider.autoDispose<Result<VideoPlayerController, String>>(
-        (ref) async* {
+class MyVideoData {
+  final ServiceElem service;
+  final Result<VideoPlayerController, String> video;
+
+  MyVideoData({required this.service, required this.video});
+}
+
+final videoProvider = StreamProvider.autoDispose<MyVideoData>((ref) async* {
   final serviceStream = ref.watch(serviceProvider.stream);
 
   await for (final item in serviceStream) {
@@ -20,46 +25,46 @@ final videoProvider =
     try {
       await controller.initialize();
     } catch (e) {
-      yield Error(e.toString());
+      yield MyVideoData(video: Error(e.toString()), service: item);
     }
 
-    yield Success(controller);
+    yield MyVideoData(video: Success(controller), service: item);
   }
 });
 
 final videoListProvider = StreamProvider.autoDispose((ref) async* {
   final videoStream = ref.watch(videoProvider.stream);
 
-  List<Result<VideoPlayerController, String>> videoList = const [];
+  List<MyVideoData> videoList = const [];
   await for (final item in videoStream) {
     videoList = [...videoList, item];
     yield videoList;
   }
 });
 
-final videoNotifierProvider = StateNotifierProvider.autoDispose<VideoNotifier,
-    List<Result<VideoPlayerController, String>>>((ref) {
-  final videoController = ref.watch(videoListProvider);
+// final videoNotifierProvider = StateNotifierProvider.autoDispose<VideoNotifier,
+//     List<Result<VideoPlayerController, String>>>((ref) {
+//   final videoController = ref.watch(videoListProvider);
 
-  return VideoNotifier(data: videoController);
-});
+//   return VideoNotifier(data: videoController);
+// });
 
-class VideoNotifier
-    extends StateNotifier<List<Result<VideoPlayerController, String>>> {
-  VideoNotifier({data}) : super(data);
+// class VideoNotifier
+//     extends StateNotifier<List<Result<VideoPlayerController, String>>> {
+//   VideoNotifier({data}) : super(data);
 
-  void add(Result<VideoPlayerController, String> controller) {
-    state = [...state, controller];
-  }
+//   void add(Result<VideoPlayerController, String> controller) {
+//     state = [...state, controller];
+//   }
 
-  void play(int index) {
-    state[index].tryGetSuccess()!.play();
-  }
+//   void play(int index) {
+//     state[index].tryGetSuccess()!.play();
+//   }
 
-  void pause(int index) {
-    state[index].tryGetSuccess()!.pause();
-  }
-}
+//   void pause(int index) {
+//     state[index].tryGetSuccess()!.pause();
+//   }
+// }
 
 
 // class VideoListWidget extends ConsumerWidget {
