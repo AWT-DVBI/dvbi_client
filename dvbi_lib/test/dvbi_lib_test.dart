@@ -6,75 +6,39 @@ import 'dart:convert';
 import 'package:pretty_json/pretty_json.dart';
 
 Future<void> main() async {
-  var myxml = '''<?xml version="1.0"?>
-<TVAMain xmlns="urn:tva:metadata:2019" xmlns:mpeg7="urn:tva:mpeg7:2008" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xml:lang="de">
+  var progInfoXml = '''<?xml version="1.0" encoding="UTF-8"?>
+<TVAMain xmlns="urn:tva:metadata:2019" xmlns:mpeg7="urn:tva:mpeg7:2008" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" publicationTime="2022-09-08T06:05:17Z" publisher="MIT-xperts iSIMS" xml:lang="de" xsi:schemaLocation="urn:tva:metadata:2019 tva_metadata_3-1.xsd">
     <ProgramDescription>
-        <ProgramInformationTable xml:lang="de">
-            <ProgramInformation programId="crid://zdf.de/metadata/broadcast_item/83791/">
+        <ProgramInformationTable>
+            <ProgramInformation programId="crid://1.1019.10301/25107">
                 <BasicDescription>
-                    <Title type="main" xml:lang="de">
-                        <![CDATA[Mythos Concorde]]>
-                    </Title>
-                    <Synopsis length="medium" xml:lang="de">
-                        <![CDATA[Die Concorde gilt noch heute als technisches Meisterwerk. Obwohl ihr Betrieb sich bald als unrentabel erweist, fliegt sie jahrzehntelang. Bis ein tragischer Unfall alles verändert.]]>
-                    
-                    </Synopsis>
+                    <Title xml:lang="de" type="main">Die Briefe meiner Mutter</Title>
+                    <Title type="secondary" xml:lang="de">Fernsehfilm Deutschland 2014</Title>
+                    <Synopsis length="medium" xml:lang="de">Einen Tag vor ihrem 18. Geburtstag findet Laura Hellmer durch Zufall heraus, dass ihre Mutter Katharina, eine renommierte Politjournalistin, sie jahrelang belogen hat: Lauras Vater war kein spanischer Kriegsfotograf, der vor ihrer Geburt starb, ...</Synopsis>
+                    <Synopsis length="long" xml:lang="de">Einen Tag vor ihrem 18. Geburtstag findet Laura Hellmer durch Zufall heraus, dass ihre Mutter Katharina, eine renommierte Politjournalistin, sie jahrelang belogen hat: Lauras Vater war kein spanischer Kriegsfotograf, der vor ihrer Geburt starb, sondern lebt und befindet sich vermutlich in Chile. Kurzerhand macht sich Laura auf nach Südamerika, um ihren wahren Vater zu finden. Während sie sich in Santiago auf die Spuren ihrer Mutter begibt, die einst über die Opfer der Pinochet-Diktatur berichtete, reist Katharina ihrer Tochter hinterher.</Synopsis>
+                    <Genre href="urn:tva:metadata:cs:ContentCS:2011:3.4"></Genre>
                     <RelatedMaterial>
-                        <HowRelated href="urn:tva:metadata:cs:HowRelatedCS:2012:19"/>
+                        <HowRelated href="urn:tva:metadata:cs:HowRelatedCS:2012:19"></HowRelated>
                         <MediaLocator>
-                            <MediaUri contentType="image/png">https://int-dvbi.zdf.de/contentguide/image/4213.png</MediaUri>
+                            <MediaUri contentType="image/jpeg">https://epgimg.ard-poc.de/MjAyMi0wMS0yMw==/61ecb000d65384000872687b_thumb.jpg</MediaUri>
                         </MediaLocator>
                     </RelatedMaterial>
                 </BasicDescription>
-                <MemberOf crid="crid://dvb.org/metadata/schedules/now-next/now" index="1"/>
-            </ProgramInformation>
-            <ProgramInformation programId="crid://zdf.de/metadata/broadcast_item/83792/">
-                <BasicDescription>
-                    <Title type="main" xml:lang="de">
-                        <![CDATA[Mythos Concorde]]>
-                    </Title>
-                    <Synopsis length="medium" xml:lang="de">
-                        <![CDATA[Die Concorde gilt noch heute als technisches Meisterwerk. Obwohl ihr Betrieb sich bald als unrentabel erweist, fliegt sie jahrzehntelang. Bis ein tragischer Unfall alles verändert.]]>
-                    </Synopsis>
-                    <RelatedMaterial>
-                        <HowRelated href="urn:tva:metadata:cs:HowRelatedCS:2012:19"/>
-                        <MediaLocator>
-                            <MediaUri contentType="image/png">https://int-dvbi.zdf.de/contentguide/image/4214.png</MediaUri>
-                        </MediaLocator>
-                    </RelatedMaterial>
-                </BasicDescription>
-                <MemberOf crid="crid://dvb.org/metadata/schedules/now-next/later" index="1"/>
+                <OtherIdentifier organization="MIT-xperts" type="addvalue:ARDPOC_UNTERTITEL">S:J</OtherIdentifier>
+                <OtherIdentifier organization="MIT-xperts" type="addvalue:IMPORT_EVENTID">S:62e25140828e8e00085c9ec5</OtherIdentifier>
+                <OtherIdentifier organization="MIT-xperts" type="addvalue:ARDPOC_AUDIO_MEHRKANAL">S:J</OtherIdentifier>
+                <OtherIdentifier organization="MIT-xperts" type="addvalue:ARDPOC_SCHWARZWEISS">S:N</OtherIdentifier>
+                <OtherIdentifier organization="MIT-xperts" type="addvalue:ARDPOC_AUDIO_DESKRIPTION">S:J</OtherIdentifier>
             </ProgramInformation>
         </ProgramInformationTable>
-        <GroupInformationTable>
-            <GroupInformation groupId="crid://dvb.org/metadata/schedules/now-next/now" numOfItems="1" ordered="true">
-                <GroupType value="otherCollection" xsi:type="ProgramGroupTypeType"/>
-                <BasicDescription/>
-            </GroupInformation>
-            <GroupInformation groupId="crid://dvb.org/metadata/schedules/now-next/later" numOfItems="1" ordered="true">
-                <GroupType value="otherCollection" xsi:type="ProgramGroupTypeType"/>
-                <BasicDescription/>
-            </GroupInformation>
-        </GroupInformationTable>
         <ProgramLocationTable>
-            <Schedule serviceIDRef="tag:zdf.de,2020:zdfinfo" start="2022-12-12T17:45:00Z" end="2022-12-12T19:15:00Z">
-                <ScheduleEvent>
-                    <Program crid="crid://zdf.de/metadata/broadcast_item/83791/"/>
-                    <PublishedStartTime>2022-12-12T17:45:00Z</PublishedStartTime>
-                    <PublishedDuration>PT45M</PublishedDuration>
-                </ScheduleEvent>
-                <ScheduleEvent>
-                    <Program crid="crid://zdf.de/metadata/broadcast_item/83792/"/>
-                    <PublishedStartTime>2022-12-12T18:30:00Z</PublishedStartTime>
-                    <PublishedDuration>PT45M</PublishedDuration>
-                </ScheduleEvent>
-            </Schedule>
-        </ProgramLocationTable>
+      
+    </ProgramLocationTable>
     </ProgramDescription>
 </TVAMain>''';
 
 //get now_next info parser
-  final document = XmlDocument.parse(myxml);
+/*  final document = XmlDocument.parse(myxml);
 
   //TODO check if first and last can be same if only one element
   Iterable<XmlElement> scheduleArr = document
@@ -91,6 +55,25 @@ Future<void> main() async {
 
   print("----");
   var mypsi = ProgramScheduleInfo.parse(data: document);
+  
+  var json1 = mypsi.current.toJson();
+  var json2 = mypsi.next.toJson();
+
+  //prettyJson returns a string
+  print(prettyJson(json1, indent: 2));
+  print(prettyJson(json2, indent: 2));
+  
+  */
+
+  final document = XmlDocument.parse(progInfoXml);
+
+  var mypi = ProgramInfo.parse(data: document);
+
+  var json = mypi.toJson();
+
+  //prettyJson returns a string
+  print(prettyJson(json, indent: 2));
+
   /* print("testAttribute");
   print(mypsi.current.pid);
   print(mypsi.current.title);
@@ -109,13 +92,6 @@ Future<void> main() async {
   print(mypsi.next.synopsis);
 */
 
-  var json1 = mypsi.current.toJson();
-  var json2 = mypsi.next.toJson();
-
-  //prettyJson returns a string
-  print(prettyJson(json1, indent: 2));
-  print(prettyJson(json2, indent: 2));
-
   test('adds one to input values', () {
     final calculator = Calculator();
     expect(calculator.addOne(2), 3);
@@ -124,9 +100,106 @@ Future<void> main() async {
   });
 }
 
-String getPrettyJSONString(jsonObject) {
-  var encoder = new JsonEncoder.withIndent("     ");
-  return encoder.convert(jsonObject);
+//delete proginfoxml because http request will be in future methode
+ProgramInfo getProgramInfo(endpoint, pid, progInfoXml) {
+  //
+
+  return ProgramInfo.parse(data: progInfoXml);
+}
+
+/**
+   * detailed information about specific program
+   */
+class ProgramInfo {
+  String programId;
+  String mainTitle;
+  String secTitle;
+
+  String synopsisMedium;
+  String synopsisLong;
+  String genre;
+  String imageUrl;
+
+  ProgramInfo(
+      {required this.programId,
+      required this.mainTitle,
+      required this.secTitle,
+      required this.synopsisMedium,
+      required this.synopsisLong,
+      required this.genre,
+      required this.imageUrl});
+
+  factory ProgramInfo.parse({required XmlDocument data}) {
+    String programId = data
+        .getElement("TVAMain")!
+        .getElement("ProgramDescription")!
+        .getElement("ProgramInformationTable")!
+        .getElement("ProgramInformation")!
+        .getAttribute("programId")!;
+
+    Iterable<XmlElement> titles = data
+        .getElement("TVAMain")!
+        .getElement("ProgramDescription")!
+        .getElement("ProgramInformationTable")!
+        .getElement("ProgramInformation")!
+        .getElement("BasicDescription")!
+        .findElements("Title");
+
+    String mainTitle = titles.first.innerText;
+
+    String secTitle = titles.last.innerText;
+
+    Iterable<XmlElement> synposisis = data
+        .getElement("TVAMain")!
+        .getElement("ProgramDescription")!
+        .getElement("ProgramInformationTable")!
+        .getElement("ProgramInformation")!
+        .getElement("BasicDescription")!
+        .findElements("Synopsis");
+
+    String synposisMedium = synposisis.first.innerText;
+
+    String sysnopsisLong = synposisis.last.innerText;
+
+    String genre = data
+        .getElement("TVAMain")!
+        .getElement("ProgramDescription")!
+        .getElement("ProgramInformationTable")!
+        .getElement("ProgramInformation")!
+        .getElement("BasicDescription")!
+        .getElement("Genre")!
+        .getAttribute("href")!;
+
+    String imageUrl = data
+        .getElement("TVAMain")!
+        .getElement("ProgramDescription")!
+        .getElement("ProgramInformationTable")!
+        .getElement("ProgramInformation")!
+        .getElement("BasicDescription")!
+        .getElement("RelatedMaterial")!
+        .getElement("MediaLocator")!
+        .getElement("MediaUri")!
+        .innerText;
+
+    return ProgramInfo(
+        programId: programId,
+        mainTitle: mainTitle,
+        secTitle: secTitle,
+        synopsisLong: sysnopsisLong,
+        synopsisMedium: synposisMedium,
+        genre: genre,
+        imageUrl: imageUrl);
+  }
+
+  Map<String, dynamic> toJson() => {
+        'programId': programId,
+        'mainTitle': mainTitle,
+        'secTitle': secTitle,
+        'synopsisLong': synopsisLong,
+        'synopsisMedium': synopsisMedium,
+        'genre': genre,
+        'imageUrl': imageUrl
+      };
 }
 
 /**
@@ -134,8 +207,8 @@ String getPrettyJSONString(jsonObject) {
  * more info see dvbi docs - 6.5.3 Now/Next Filtered Schedule Request
  */
 class ProgramScheduleInfo {
-  Program current; //member of now
-  Program next; //member 0f next
+  ProgramSchedule current; //member of now
+  ProgramSchedule next; //member 0f next
 
   ProgramScheduleInfo({required this.current, required this.next});
 
@@ -161,16 +234,16 @@ class ProgramScheduleInfo {
     XmlElement dataScheduleCurrent = scheduleArr.first;
     XmlElement dataScheduleNext = scheduleArr.last;
 
-    Program current = Program.parse(
+    ProgramSchedule current = ProgramSchedule.parse(
         dataProg: dataProgCurrent, dataSchedule: dataScheduleCurrent);
-    Program next =
-        Program.parse(dataProg: dataProgNext, dataSchedule: dataScheduleNext);
+    ProgramSchedule next = ProgramSchedule.parse(
+        dataProg: dataProgNext, dataSchedule: dataScheduleNext);
     return ProgramScheduleInfo(current: current, next: next);
   }
 }
 
-// prgramminfo
-class Program {
+// prgrammschedule
+class ProgramSchedule {
   //ProgramInformation programId i.e.="crid://zdf.de/metadata/broadcast_item/83791/"
   String pid;
   String title;
@@ -184,7 +257,7 @@ class Program {
   // PublishedDuration
   String programDuration;
 
-  Program(
+  ProgramSchedule(
       {required this.pid,
       required this.title,
       required this.synopsis,
@@ -195,7 +268,7 @@ class Program {
   /**
    * xmlElemet start at level ProgramInformation=dataprog & dataschedule=programlocationtable/ScheduleEvent
    */
-  factory Program.parse(
+  factory ProgramSchedule.parse(
       {required XmlElement dataProg, required XmlElement dataSchedule}) {
     String pid = dataProg.getAttribute("programId")!;
     String title =
@@ -217,7 +290,7 @@ class Program {
     String programDuration =
         dataSchedule.getElement("PublishedDuration")!.innerText;
 
-    return Program(
+    return ProgramSchedule(
         pid: pid,
         title: title,
         synopsis: synopsis,
