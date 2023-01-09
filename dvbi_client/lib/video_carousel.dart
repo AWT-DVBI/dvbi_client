@@ -1,6 +1,7 @@
 // ignore_for_file: unused_import, depend_on_referenced_packages
 
 import 'package:carousel_slider/carousel_slider.dart';
+import 'package:dvbi_client/content_guide_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'video_widget.dart';
@@ -51,12 +52,16 @@ class CarouselNotifier extends StateNotifier<CarouselController> {
 class VideoCarousel extends ConsumerWidget {
   // Arguments for widget
   const VideoCarousel({super.key});
+  static const routeName = "videoCarousel";
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final CarouselController carControl = ref.watch(carouselControllerProvider);
     final serviceList = ref.watch(serivceListProvider);
     final videoList = ref.watch(videoListProvider);
+    int index = ModalRoute.of(context)?.settings.arguments as int? ?? 0;
+    print("navigating to carousel page with index");
+    print(index);
 
     return Stack(children: <Widget>[
       CarouselSlider(
@@ -102,7 +107,7 @@ class VideoCarousel extends ConsumerWidget {
           enlargeCenterPage: true,
           viewportFraction: 0.9,
           aspectRatio: 2.0,
-          initialPage: 2,
+          initialPage: index,
         ),
       ),
       // Align(
@@ -148,7 +153,25 @@ class VideoCarousel extends ConsumerWidget {
               })
             },
             child: const Icon(Icons.arrow_forward_ios, size: 32),
-          ))
+          )),
+      Align(
+          alignment: Alignment.bottomCenter,
+          child: ElevatedButton.icon(
+            icon: const Icon(Icons.home, size: 32),
+            style: ElevatedButton.styleFrom(
+                padding:
+                const EdgeInsets.symmetric(horizontal: 32, vertical: 0),
+              backgroundColor: Colors.blueGrey,
+              textStyle: const TextStyle(
+                  fontSize: 30,
+                  fontWeight: FontWeight.bold),
+            ),
+            onPressed: () {
+              Navigator.pop(context);
+            },
+            label: const Text("Content Guide Page"),
+          )
+      )
     ]);
   }
 }

@@ -1,5 +1,6 @@
 // ignore_for_file: unused_import
 
+import 'package:dvbi_client/content_guide_page.dart';
 import 'package:flutter/material.dart';
 import 'video_carousel.dart';
 import 'package:dvbi_lib/dvbi_lib.dart';
@@ -59,6 +60,11 @@ class MyApp extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return const MaterialApp(home: VideoCarousel());
+    return MaterialApp(
+        routes: {
+          VideoCarousel.routeName: (context) => const VideoCarousel(),
+          ContentGuidePage.routeName: (context) => const ContentGuidePage(),
+        },
+        home: const ContentGuidePage());
   }
 }
