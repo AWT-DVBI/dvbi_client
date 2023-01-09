@@ -16,25 +16,103 @@ class DVBIException implements Exception {
   DVBIException(this.cause);
 }
 
-class ProgrammScheduleInfo {
-//get for a specific service programm ->request endpoint?id?now->parse xml
-//aktuelles programm und nächstes oder 10 nächsten/vorherigen
+/**
+   * detailed information about specific program
+   */
+class ProgramInfo {
+  String programId;
+  String mainTitle;
+  String secTitle;
 
-/*
-req: 
-1.get for specific service the endpoint
-2. get the sid
+  String synopsisMedium;
+  String synopsisLong;
+  String genre;
+  String imageUrl;
 
+  ProgramInfo(
+      {required this.programId,
+      required this.mainTitle,
+      required this.secTitle,
+      required this.synopsisMedium,
+      required this.synopsisLong,
+      required this.genre,
+      required this.imageUrl});
 
+  factory ProgramInfo.parse({required XmlDocument data}) {
+    String programId = data
+        .getElement("TVAMain")!
+        .getElement("ProgramDescription")!
+        .getElement("ProgramInformationTable")!
+        .getElement("ProgramInformation")!
+        .getAttribute("programId")!;
 
-Programminfo event -> prefious, current , next
--> titel
--> bild
--> programm id for req more info if wanted
--> beschreibung ?keine verfügbar
+    Iterable<XmlElement> titles = data
+        .getElement("TVAMain")!
+        .getElement("ProgramDescription")!
+        .getElement("ProgramInformationTable")!
+        .getElement("ProgramInformation")!
+        .getElement("BasicDescription")!
+        .findElements("Title");
 
- */
+    String mainTitle = titles.first.innerText;
 
+    String secTitle = titles.last.innerText;
+
+    Iterable<XmlElement> synposisis = data
+        .getElement("TVAMain")!
+        .getElement("ProgramDescription")!
+        .getElement("ProgramInformationTable")!
+        .getElement("ProgramInformation")!
+        .getElement("BasicDescription")!
+        .findElements("Synopsis");
+
+    String synposisMedium = synposisis.first.innerText;
+
+    //TODO is optional S.115
+    String sysnopsisLong = synposisis.last.innerText;
+
+    //TODO genre is optional -> check
+    String genre = "";
+    if (data.findAllElements("Genre").isNotEmpty) {
+      genre = data
+          .getElement("TVAMain")!
+          .getElement("ProgramDescription")!
+          .getElement("ProgramInformationTable")!
+          .getElement("ProgramInformation")!
+          .getElement("BasicDescription")!
+          .getElement("Genre")!
+          .getAttribute("href")!;
+    }
+    String imageUrl = data
+        .getElement("TVAMain")!
+        .getElement("ProgramDescription")!
+        .getElement("ProgramInformationTable")!
+        .getElement("ProgramInformation")!
+        .getElement("BasicDescription")!
+        .getElement("RelatedMaterial")!
+        .getElement("MediaLocator")!
+        .getElement("MediaUri")!
+        .innerText;
+
+    return ProgramInfo(
+        programId: programId,
+        mainTitle: mainTitle,
+        secTitle: secTitle,
+        synopsisLong: sysnopsisLong,
+        synopsisMedium: synposisMedium,
+        genre: genre,
+        imageUrl: imageUrl);
+  }
+
+  Map<String, dynamic> toJson() => {
+        'programId': programId,
+        'mainTitle': mainTitle,
+        'secTitle': secTitle,
+        'synopsisLong': synopsisLong,
+        'synopsisMedium': synopsisMedium,
+        'genre': genre,
+        'imageUrl': imageUrl
+      };
 }
 
 /**
@@ -421,5 +499,38 @@ class DVBI {
 
     //return as stream
     yield ProgramScheduleInfo_nownext.parse(data: scheduleData);
+  }
+
+  //delete proginfoxml because http request will be in future methode
+  Stream<ProgramInfo> getProgramInfo(endpointpi, pid) async* {
+    //
+
+    final String xmlData;
+
+    if (Uri.parse(endpointpi).isScheme("HTTP") ||
+        Uri.parse(endpointpi).isScheme("HTTPS")) {
+      // String endpoint =scheduleInfoEndpoint + '?' + sid + '&' + 'now_next=true';
+      String endpoint = '$endpointpi?pid=$pid';
+
+      print(endpoint + " in" + "pSI function");
+
+      var res = await http.get(Uri.parse(endpoint));
+
+      if (res.statusCode != 200) {
+        throw DVBIException(
+            "Status code invalid. Code: ${res.statusCode} Reason: ${res.reasonPhrase}");
+      }
+      xmlData = res.body;
+    } else {
+      print("in else?");
+      var res = File.fromUri(endpointUrl);
+
+      xmlData = await res.readAsString();
+    }
+
+    final programInfo = XmlDocument.parse(xmlData);
+
+    //return as stream
+    yield ProgramInfo.parse(data: programInfo);
   }
 }

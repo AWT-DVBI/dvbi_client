@@ -1,5 +1,7 @@
 // ignore_for_file: avoid_print, unused_local_variable
 
+import 'dart:math';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'dart:convert';
 import 'package:dvbi_lib/dvbi_lib.dart';
@@ -30,6 +32,18 @@ Future<void> main() async {
     print(prettyJson(json1, indent: 2));
 
     //abfrage test für program info
+    if (first.contentGuideSourceElem?.programInfoEndpoint != null) {
+      var mytest = first.contentGuideSourceElem?.programInfoEndpoint;
+
+      print("vor res4 " + mytest.toString() + res3.current.pid);
+      var res4 = await dvbi.getProgramInfo(mytest.toString(), res3.current.pid);
+
+      var res5 = await res4.first;
+
+      var json1 = res5.toJson();
+
+      print(prettyJson(json1, indent: 2));
+    }
 
     //req with res3.current.pid & serviceElem.programinfoendpoint
 
