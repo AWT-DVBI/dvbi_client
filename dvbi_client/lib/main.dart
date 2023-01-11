@@ -7,37 +7,48 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'dart:developer' as dev;
 import 'package:flutter/services.dart' show rootBundle;
 
+// Code generation
+import 'package:flutter/foundation.dart';
+import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
+part 'main.g.dart';
+//part 'main.freezed.dart';
+
 const String endpointUrl = "https://dvb-i.net/production/services.php/de";
 
 // We are using state management platform riverpod:
 // https://riverpod.dev/de/docs/concepts/providers
 
-final serviceProvider = StreamProvider.autoDispose((ref) async* {
+@riverpod
+Future<DVBI> getDVBI(GetDVBIRef ref) async {
   String data = await rootBundle.loadString("assets/services.xml");
   final dvbi = DVBI(data: data);
 
-  ref.onDispose(() {
-    // Schließt den stream, wenn der Zustand des Providers zerstört wird.
-    dvbi.close();
-  });
+  return dvbi;
+}
 
-  await for (final serviceElem in dvbi.stream) {
+@riverpod
+Stream<ServiceElem> streamServiceElems(StreamServiceElemsRef ref) async* {
+  final AsyncValue<DVBI> dvbi = await ref.watch(getDVBIProvider);
+
+  await for (final serviceElem in dvbi.value!.stream) {
     if (serviceElem.dashmpd == null) {
       continue;
     }
     yield serviceElem;
   }
-});
+}
 
-final serivceListProvider = StreamProvider.autoDispose((ref) async* {
-  final serviceStream = ref.watch(serviceProvider.stream);
+@riverpod
+Stream<List<ServiceElem>> serviceList(ServiceListRef ref) async* {
+  final serviceStream = ref.watch(streamServiceElemsProvider);
 
   List<ServiceElem> videoList = const [];
   await for (final item in serviceStream) {
     videoList = [...videoList, item];
     yield videoList;
   }
-});
+}
 
 void main() {
   runApp(

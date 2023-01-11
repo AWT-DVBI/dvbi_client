@@ -3,20 +3,41 @@
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:freezed_annotation/freezed_annotation.dart';
 import 'video_widget.dart';
 import 'package:video_player/video_player.dart';
 import 'package:multiple_result/multiple_result.dart';
 import 'package:collection/collection.dart';
 import 'main.dart';
 
-class Page {
-  int? prev;
-  int curr;
+// Code generation
+import 'package:flutter/foundation.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
+part 'video_carousel.g.dart';
+part 'video_carousel.freezed.dart';
 
-  Page({required this.prev, required this.curr});
+@freezed
+class Page with _$Page {
+  const factory Page({required List<int> prev, required int curr}) = _Page;
 }
 
-final pageNum = StateProvider<int>(((ref) => 0));
+class PageNotifier extends StateNotifier<Page> {
+  PageNotifier() : super(const Page(curr: 0, prev: []));
+
+  int get currPage {
+    return state.curr;
+  }
+
+  set currPage(int curr) {
+    final sub = state.prev.reversed.toList().sublist(2) + [curr];
+    state = state.copyWith(prev: sub, curr: curr);
+  }
+}
+
+@riverpod
+PageNotifier getPage(GetPageRef ref) {
+  return PageNotifier();
+}
 
 final carouselControllerProvider =
     StateNotifierProvider<CarouselNotifier, CarouselController>((ref) {
@@ -103,8 +124,9 @@ class VideoCarousel extends ConsumerWidget {
                 carouselController: carControl,
                 options: CarouselOptions(
                   onPageChanged: (index, reason) {
-                    ref.read(pageNum.notifier).state = index;
+                    ref.read(getPageProvider).currPage = index;
                   },
+                  onScrolled: (value) {},
                   enableInfiniteScroll: false,
                   autoPlay: false,
                   enlargeCenterPage: true,
@@ -120,8 +142,9 @@ class VideoCarousel extends ConsumerWidget {
                   heightFactor: 0.2,
                   child: Container(
                       color: Colors.lightBlue,
-                      child:
-                          Center(child: Text(ref.watch(pageNum).toString()))),
+                      child: Center(
+                          child: Text(
+                              ref.watch(getPageProvider).currPage.toString()))),
                 ),
               ),
               Align(

@@ -249,6 +249,19 @@ class DVBI {
     httpClient.close();
   }
 
+  List<ServiceElem> get serviceElems {
+    final serviceList = XmlDocument.parse(data!).getElement("ServiceList")!;
+    final services = serviceList.findAllElements("Service");
+    final List<XmlElement>? contentGuideSourceList = serviceList
+        .getElement("ContentGuideSourceList")
+        ?.childElements
+        .toList();
+    return services
+        .map((serviceData) => ServiceElem.parse(
+            data: serviceData, contentGuideSourceList: contentGuideSourceList))
+        .toList();
+  }
+
   Stream<ServiceElem> get stream async* {
     final serviceList = XmlDocument.parse(data!).getElement("ServiceList")!;
 

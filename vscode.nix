@@ -18,6 +18,12 @@ vscode.override {
       sha256 = "sha256-2Mi0BWXfO73BBIZIRJMaQyml+jXBI9d7By+vx9Rg+pE=";
     }
     {
+      name = "flutter-riverpod-snippets";
+      publisher = "robert-brunhage";
+      version = "1.2.1";
+      sha256 = "sha256-9EujM/BmAkoRFvNrw+qb6/1/ocSfdYlGgn2Y/wt4uaY=";
+    }
+    {
       name = "dart-code";
       publisher = "dart-code";
       version = "3.50.0";

@@ -1,5 +1,7 @@
 // ignore_for_file: unused_import, depend_on_referenced_packages
 
+import 'dart:ffi';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:video_player/video_player.dart';
@@ -9,26 +11,50 @@ import 'package:dvbi_lib/dvbi_lib.dart';
 import 'dart:developer' as dev;
 import 'package:collection/collection.dart';
 
+@immutable
 class MyVideoData {
+  final int id;
   final ServiceElem service;
   final Result<VideoPlayerController, String> video;
 
-  MyVideoData({required this.service, required this.video});
+  const MyVideoData(
+      {required this.service, required this.video, required this.id});
+
+  MyVideoData copyWith(
+      {int? id,
+      ServiceElem? service,
+      Result<VideoPlayerController, String>? video}) {
+    return MyVideoData(
+        service: service ?? this.service,
+        video: video ?? this.video,
+        id: id ?? this.id);
+  }
+}
+
+@immutable
+class InitializedVideos {
+  final List<MyVideoData> videoList;
+  final List<Int> initVideos;
+
+  const InitializedVideos({required this.initVideos, required this.videoList});
+
+  InitializedVideos copyWith(
+      {List<Int>? initVideos, List<MyVideoData>? videoList}) {
+    return InitializedVideos(
+        initVideos: initVideos ?? this.initVideos,
+        videoList: videoList ?? this.videoList);
+  }
 }
 
 final videoProvider = StreamProvider.autoDispose<MyVideoData>((ref) async* {
-  final serviceStream = ref.watch(serviceProvider.stream);
+  final serviceStream = ref.watch(streamServiceElemsProvider);
 
+  int id = 0;
   await for (final item in serviceStream) {
     final controller = VideoPlayerController.network(item.dashmpd!.toString());
+    id += 1;
 
-    try {
-      await controller.initialize();
-    } catch (e) {
-      yield MyVideoData(video: Error(e.toString()), service: item);
-    }
-
-    yield MyVideoData(video: Success(controller), service: item);
+    yield MyVideoData(video: Success(controller), service: item, id: id);
   }
 });
 
@@ -42,29 +68,54 @@ final videoListProvider = StreamProvider.autoDispose((ref) async* {
   }
 });
 
-// final videoNotifierProvider = StateNotifierProvider.autoDispose<VideoNotifier,
-//     List<Result<VideoPlayerController, String>>>((ref) {
-//   final videoController = ref.watch(videoListProvider);
+final videoNotifierProvider = StateNotifierProvider.autoDispose<VideoNotifier,
+    List<Result<VideoPlayerController, String>>>((ref) {
+  final videoController = ref.watch(videoListProvider);
 
-//   return VideoNotifier(data: videoController);
-// });
+  return VideoNotifier(data: videoController);
+});
 
-// class VideoNotifier
-//     extends StateNotifier<List<Result<VideoPlayerController, String>>> {
-//   VideoNotifier({data}) : super(data);
+class VideoNotifier extends StateNotifier<List<MyVideoData>> {
+  VideoNotifier({data}) : super(data);
 
-//   void add(Result<VideoPlayerController, String> controller) {
-//     state = [...state, controller];
-//   }
+  void add(MyVideoData controller) {
+    state = [...state, controller];
+  }
 
-//   void play(int index) {
-//     state[index].tryGetSuccess()!.play();
-//   }
+  void setError(int id, String error) {
+    state = [
+      for (final data in state)
+        if (data.id == id) data.copyWith(video: Error(error)) else data
+    ];
+  }
 
-//   void pause(int index) {
-//     state[index].tryGetSuccess()!.pause();
-//   }
-// }
+  Future<void> initVideos(int id) async {
+    final futureList = state.map((data) async {
+      if (data.id == id) {
+        try {
+          await data.video.tryGetSuccess()!.initialize();
+          return data;
+        } catch (e) {
+          data.copyWith(video: Error(e.toString()));
+        }
+      }
+      return data;
+    });
+
+    final List<MyVideoData> list = [];
+    for (final item in futureList) {
+      list.add(await item);
+    }
+    state = list;
+  }
+
+  void remove(int id) {
+    state = [
+      for (final data in state)
+        if (data.id != id) data
+    ];
+  }
+}
 
 
 // class VideoListWidget extends ConsumerWidget {
