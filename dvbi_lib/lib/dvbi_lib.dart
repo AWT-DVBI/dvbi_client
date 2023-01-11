@@ -310,6 +310,7 @@ class ServiceElem {
   final ContentGuideSourceElem? contentGuideSourceElem;
   final Uri? dashmpd;
   final Uri? logo;
+  final String? contentGuideServiceRef;
 
   ProgramScheduleInfo_nownext? programinfo;
 
@@ -319,7 +320,8 @@ class ServiceElem {
       required this.providerName,
       required this.contentGuideSourceElem,
       required this.dashmpd,
-      required this.logo});
+      required this.logo,
+      required this.contentGuideServiceRef});
 
   Map<String, dynamic> toJson() => {
         'serviceName': serviceName,
@@ -327,7 +329,8 @@ class ServiceElem {
         'providerName': providerName,
         'contentGuideSourceElem': contentGuideSourceElem,
         'dashmpd': dashmpd?.toString(),
-        'logo': logo?.toString()
+        'logo': logo?.toString(),
+        'contentGuideServiceRef': contentGuideServiceRef
       };
 
   //constructor short way
@@ -416,13 +419,19 @@ class ServiceElem {
           .getLogo();
     }
 
+    String? contentGuideServiceRef;
+
+    contentGuideServiceRef =
+        data.getElement("ContentGuideServiceRef")?.innerText;
+
     return ServiceElem(
         serviceName: serviceName,
         uniqueIdentifier: uniqueIdentifier,
         providerName: providerName,
         contentGuideSourceElem: contentGuideSourceObj,
         dashmpd: dashmpd,
-        logo: logo);
+        logo: logo,
+        contentGuideServiceRef: contentGuideServiceRef);
   }
 }
 
