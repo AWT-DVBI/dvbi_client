@@ -9,34 +9,43 @@ import 'package:multiple_result/multiple_result.dart';
 
 import 'main.dart';
 
-// Code generation
-import 'package:freezed_annotation/freezed_annotation.dart';
-import 'package:flutter/foundation.dart';
-part 'video_carousel.freezed.dart';
+import 'package:logger/logger.dart';
 
-@freezed
-class Page with _$Page {
-  const factory Page({required List<int> prev, required int curr}) = _Page;
+@immutable
+class Page {
+  const Page({required this.prev, required this.curr});
+
+  final List<int> prev;
+  final int curr;
+
+  Page copyWith({List<int>? prev, int? curr}) {
+    return Page(curr: curr ?? this.curr, prev: prev ?? this.prev);
+  }
 }
 
 class PageNotifier extends StateNotifier<Page> {
-  PageNotifier() : super(const Page(curr: 0, prev: []));
+  PageNotifier({required this.ref}) : super(const Page(curr: 0, prev: []));
+  final Ref ref;
 
   int get currPage {
     return state.curr;
   }
 
   void setCurrPage(int curr) {
-    var sub = [curr];
+    final List<int> sub;
     if (state.prev.length > 2) {
-      sub = state.prev.reversed.toList().sublist(2) + [curr];
+      sub = state.prev.sublist(1, 3);
+      ref.read(asyncVideoDataProvider.notifier).deinit(state.prev.first);
+    } else {
+      sub = state.prev + [state.curr];
     }
+
     state = state.copyWith(prev: sub, curr: curr);
   }
 }
 
 final getPageProvider = StateNotifierProvider<PageNotifier, Page>((ref) {
-  return PageNotifier();
+  return PageNotifier(ref: ref);
 });
 
 final carouselControllerProvider = Provider<CarouselController>((ref) {
@@ -47,28 +56,40 @@ class VideoCarousel extends ConsumerWidget {
   // Arguments for widget
   const VideoCarousel({super.key});
 
-  List<Widget> createVideoPanes(List<MyVideoData> videoList) {
-    final res = videoList.map((vidControl) {
-      return vidControl.video.when(
-          (vidControl) => Scaffold(
+  bool isInitialized(VideoPlayerController? controller) {
+    if (controller == null || controller.value.isInitialized == false) {
+      return false;
+    }
+
+    return true;
+  }
+
+  List<Widget> createVideoPanes(List<MyVideoData> videoDataList) {
+    final res = videoDataList.map((myVideoData) {
+      return myVideoData.video.when(
+          (controller) => Scaffold(
                 body: Center(
-                  child: vidControl.value.isInitialized
+                  child: isInitialized(controller)
                       ? AspectRatio(
-                          aspectRatio: vidControl.value.aspectRatio,
-                          child: VideoPlayer(vidControl),
+                          aspectRatio: controller!.value.aspectRatio,
+                          child: VideoPlayer(controller),
                         )
                       : const CircularProgressIndicator(),
                 ),
-                floatingActionButton: FloatingActionButton(
-                  onPressed: () {
-                    vidControl.value.isPlaying
-                        ? vidControl.pause()
-                        : vidControl.play();
-                  },
-                  child: Icon(
-                    vidControl.value.isPlaying ? Icons.pause : Icons.play_arrow,
-                  ),
-                ),
+                floatingActionButton: isInitialized(controller)
+                    ? FloatingActionButton(
+                        onPressed: () {
+                          controller.value.isPlaying
+                              ? controller.pause()
+                              : controller.play();
+                        },
+                        child: Icon(
+                          controller!.value.isPlaying
+                              ? Icons.pause
+                              : Icons.play_arrow,
+                        ),
+                      )
+                    : null,
               ),
           (error) => Row(children: [
                 Expanded(child: SingleChildScrollView(child: Text(error)))
@@ -81,22 +102,25 @@ class VideoCarousel extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final CarouselController carControl = ref.watch(carouselControllerProvider);
-    final videoList = ref.watch(videoListProvider);
+    final asyncList = ref.watch(asyncVideoDataProvider);
 
     return Stack(children: [
       CarouselSlider(
-        items: videoList.when(
+        items: asyncList.when(
             data: (videoList) => createVideoPanes(videoList),
             error: (error, b) => [
-                  Expanded(
-                      child:
-                          SingleChildScrollView(child: Text(error.toString())))
+                  Row(children: [
+                    Expanded(
+                        child: SingleChildScrollView(
+                            child: Text(error.toString())))
+                  ])
                 ],
             loading: () => [const CircularProgressIndicator()]),
         carouselController: carControl,
         options: CarouselOptions(
           onPageChanged: (index, reason) {
             ref.read(getPageProvider.notifier).setCurrPage(index);
+            ref.read(asyncVideoDataProvider.notifier).initialize(index);
           },
           onScrolled: (value) {},
           enableInfiniteScroll: false,

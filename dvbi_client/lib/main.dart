@@ -6,7 +6,7 @@ import 'package:dvbi_lib/dvbi_lib.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'dart:developer' as dev;
 import 'package:flutter/services.dart' show rootBundle;
-
+import 'package:logger/logger.dart';
 // Code generation
 import 'package:flutter/foundation.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
@@ -14,40 +14,26 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 const String endpointUrl = "https://dvb-i.net/production/services.php/de";
 
 final dvbiProvider = FutureProvider.autoDispose((ref) async {
-  String data = await rootBundle.loadString("assets/services.xml");
-  final dvbi = DVBI(data: data);
+  //String data = await rootBundle.loadString("assets/services.xml");
 
-  return dvbi;
+  final dvbi = await DVBI().initialize(endpointUrl: Uri.parse(endpointUrl));
+
+  return dvbi.serviceElems;
 });
 
-final serviceElemsProvider = StreamProvider.autoDispose((ref) async* {
-  String data = await rootBundle.loadString("assets/services.xml");
-  final dvbi = DVBI(data: data);
+var logger = Logger(printer: PrettyPrinter());
 
-  ref.onDispose(() {
-    // Schließt den stream, wenn der Zustand des Providers zerstört wird.
+var loggerNoStack = Logger(printer: PrettyPrinter(methodCount: 0));
 
-    dvbi.close();
-  });
+// class MyFilter extends LogFilter {
+//   @override
+//   bool shouldLog(LogEvent event) {
 
-  await for (final serviceElem in dvbi.stream) {
-    if (serviceElem.dashmpd == null) {
-      continue;
-    }
+//     if (event.level == Level. )
 
-    yield serviceElem;
-  }
-});
-
-final serivceListProvider = StreamProvider.autoDispose((ref) async* {
-  final serviceStream = ref.watch(serviceElemsProvider.stream);
-
-  List<ServiceElem> videoList = const [];
-  await for (final item in serviceStream) {
-    videoList = [...videoList, item];
-    yield videoList;
-  }
-});
+//     return true;
+//   }
+// }
 
 void main() {
   runApp(

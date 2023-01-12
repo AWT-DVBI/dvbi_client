@@ -226,7 +226,7 @@ class DVBI {
 
   DVBI({this.data}) : httpClient = http.Client();
 
-  Future<DVBI> initialize({required endpointUrl}) async {
+  Future<DVBI> initialize({required Uri endpointUrl}) async {
     String data;
     if (endpointUrl.isScheme("HTTP") || endpointUrl.isScheme("HTTPS")) {
       var res = await http.get(endpointUrl);

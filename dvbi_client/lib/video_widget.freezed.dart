@@ -17,7 +17,7 @@ final _privateConstructorUsedError = UnsupportedError(
 /// @nodoc
 mixin _$MyVideoData {
   ServiceElem get service => throw _privateConstructorUsedError;
-  Result<VideoPlayerController, String> get video =>
+  Result<VideoPlayerController?, String> get video =>
       throw _privateConstructorUsedError;
   int get id => throw _privateConstructorUsedError;
 
@@ -34,7 +34,7 @@ abstract class $MyVideoDataCopyWith<$Res> {
   @useResult
   $Res call(
       {ServiceElem service,
-      Result<VideoPlayerController, String> video,
+      Result<VideoPlayerController?, String> video,
       int id});
 }
 
@@ -63,7 +63,7 @@ class _$MyVideoDataCopyWithImpl<$Res, $Val extends MyVideoData>
       video: null == video
           ? _value.video
           : video // ignore: cast_nullable_to_non_nullable
-              as Result<VideoPlayerController, String>,
+              as Result<VideoPlayerController?, String>,
       id: null == id
           ? _value.id
           : id // ignore: cast_nullable_to_non_nullable
@@ -82,7 +82,7 @@ abstract class _$$_MyVideoDataCopyWith<$Res>
   @useResult
   $Res call(
       {ServiceElem service,
-      Result<VideoPlayerController, String> video,
+      Result<VideoPlayerController?, String> video,
       int id});
 }
 
@@ -109,7 +109,7 @@ class __$$_MyVideoDataCopyWithImpl<$Res>
       video: null == video
           ? _value.video
           : video // ignore: cast_nullable_to_non_nullable
-              as Result<VideoPlayerController, String>,
+              as Result<VideoPlayerController?, String>,
       id: null == id
           ? _value.id
           : id // ignore: cast_nullable_to_non_nullable
@@ -127,7 +127,7 @@ class _$_MyVideoData implements _MyVideoData {
   @override
   final ServiceElem service;
   @override
-  final Result<VideoPlayerController, String> video;
+  final Result<VideoPlayerController?, String> video;
   @override
   final int id;
 
@@ -159,173 +159,17 @@ class _$_MyVideoData implements _MyVideoData {
 abstract class _MyVideoData implements MyVideoData {
   const factory _MyVideoData(
       {required final ServiceElem service,
-      required final Result<VideoPlayerController, String> video,
+      required final Result<VideoPlayerController?, String> video,
       required final int id}) = _$_MyVideoData;
 
   @override
   ServiceElem get service;
   @override
-  Result<VideoPlayerController, String> get video;
+  Result<VideoPlayerController?, String> get video;
   @override
   int get id;
   @override
   @JsonKey(ignore: true)
   _$$_MyVideoDataCopyWith<_$_MyVideoData> get copyWith =>
-      throw _privateConstructorUsedError;
-}
-
-/// @nodoc
-mixin _$InitializedVideos {
-  List<int> get initVideos => throw _privateConstructorUsedError;
-  List<MyVideoData> get videoList => throw _privateConstructorUsedError;
-
-  @JsonKey(ignore: true)
-  $InitializedVideosCopyWith<InitializedVideos> get copyWith =>
-      throw _privateConstructorUsedError;
-}
-
-/// @nodoc
-abstract class $InitializedVideosCopyWith<$Res> {
-  factory $InitializedVideosCopyWith(
-          InitializedVideos value, $Res Function(InitializedVideos) then) =
-      _$InitializedVideosCopyWithImpl<$Res, InitializedVideos>;
-  @useResult
-  $Res call({List<int> initVideos, List<MyVideoData> videoList});
-}
-
-/// @nodoc
-class _$InitializedVideosCopyWithImpl<$Res, $Val extends InitializedVideos>
-    implements $InitializedVideosCopyWith<$Res> {
-  _$InitializedVideosCopyWithImpl(this._value, this._then);
-
-  // ignore: unused_field
-  final $Val _value;
-  // ignore: unused_field
-  final $Res Function($Val) _then;
-
-  @pragma('vm:prefer-inline')
-  @override
-  $Res call({
-    Object? initVideos = null,
-    Object? videoList = null,
-  }) {
-    return _then(_value.copyWith(
-      initVideos: null == initVideos
-          ? _value.initVideos
-          : initVideos // ignore: cast_nullable_to_non_nullable
-              as List<int>,
-      videoList: null == videoList
-          ? _value.videoList
-          : videoList // ignore: cast_nullable_to_non_nullable
-              as List<MyVideoData>,
-    ) as $Val);
-  }
-}
-
-/// @nodoc
-abstract class _$$_InitializedVideosCopyWith<$Res>
-    implements $InitializedVideosCopyWith<$Res> {
-  factory _$$_InitializedVideosCopyWith(_$_InitializedVideos value,
-          $Res Function(_$_InitializedVideos) then) =
-      __$$_InitializedVideosCopyWithImpl<$Res>;
-  @override
-  @useResult
-  $Res call({List<int> initVideos, List<MyVideoData> videoList});
-}
-
-/// @nodoc
-class __$$_InitializedVideosCopyWithImpl<$Res>
-    extends _$InitializedVideosCopyWithImpl<$Res, _$_InitializedVideos>
-    implements _$$_InitializedVideosCopyWith<$Res> {
-  __$$_InitializedVideosCopyWithImpl(
-      _$_InitializedVideos _value, $Res Function(_$_InitializedVideos) _then)
-      : super(_value, _then);
-
-  @pragma('vm:prefer-inline')
-  @override
-  $Res call({
-    Object? initVideos = null,
-    Object? videoList = null,
-  }) {
-    return _then(_$_InitializedVideos(
-      initVideos: null == initVideos
-          ? _value._initVideos
-          : initVideos // ignore: cast_nullable_to_non_nullable
-              as List<int>,
-      videoList: null == videoList
-          ? _value._videoList
-          : videoList // ignore: cast_nullable_to_non_nullable
-              as List<MyVideoData>,
-    ));
-  }
-}
-
-/// @nodoc
-
-class _$_InitializedVideos implements _InitializedVideos {
-  const _$_InitializedVideos(
-      {required final List<int> initVideos,
-      required final List<MyVideoData> videoList})
-      : _initVideos = initVideos,
-        _videoList = videoList;
-
-  final List<int> _initVideos;
-  @override
-  List<int> get initVideos {
-    if (_initVideos is EqualUnmodifiableListView) return _initVideos;
-    // ignore: implicit_dynamic_type
-    return EqualUnmodifiableListView(_initVideos);
-  }
-
-  final List<MyVideoData> _videoList;
-  @override
-  List<MyVideoData> get videoList {
-    if (_videoList is EqualUnmodifiableListView) return _videoList;
-    // ignore: implicit_dynamic_type
-    return EqualUnmodifiableListView(_videoList);
-  }
-
-  @override
-  String toString() {
-    return 'InitializedVideos(initVideos: $initVideos, videoList: $videoList)';
-  }
-
-  @override
-  bool operator ==(dynamic other) {
-    return identical(this, other) ||
-        (other.runtimeType == runtimeType &&
-            other is _$_InitializedVideos &&
-            const DeepCollectionEquality()
-                .equals(other._initVideos, _initVideos) &&
-            const DeepCollectionEquality()
-                .equals(other._videoList, _videoList));
-  }
-
-  @override
-  int get hashCode => Object.hash(
-      runtimeType,
-      const DeepCollectionEquality().hash(_initVideos),
-      const DeepCollectionEquality().hash(_videoList));
-
-  @JsonKey(ignore: true)
-  @override
-  @pragma('vm:prefer-inline')
-  _$$_InitializedVideosCopyWith<_$_InitializedVideos> get copyWith =>
-      __$$_InitializedVideosCopyWithImpl<_$_InitializedVideos>(
-          this, _$identity);
-}
-
-abstract class _InitializedVideos implements InitializedVideos {
-  const factory _InitializedVideos(
-      {required final List<int> initVideos,
-      required final List<MyVideoData> videoList}) = _$_InitializedVideos;
-
-  @override
-  List<int> get initVideos;
-  @override
-  List<MyVideoData> get videoList;
-  @override
-  @JsonKey(ignore: true)
-  _$$_InitializedVideosCopyWith<_$_InitializedVideos> get copyWith =>
       throw _privateConstructorUsedError;
 }
