@@ -85,9 +85,14 @@ class VideoCarousel extends ConsumerWidget {
 
     return Stack(children: [
       CarouselSlider(
-        items: videoList.value != null
-            ? createVideoPanes(videoList.value!)
-            : [const Text("Waiting for videoList")],
+        items: videoList.when(
+            data: (videoList) => createVideoPanes(videoList),
+            error: (error, b) => [
+                  Expanded(
+                      child:
+                          SingleChildScrollView(child: Text(error.toString())))
+                ],
+            loading: () => [const CircularProgressIndicator()]),
         carouselController: carControl,
         options: CarouselOptions(
           onPageChanged: (index, reason) {

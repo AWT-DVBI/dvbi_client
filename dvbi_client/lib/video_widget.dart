@@ -37,11 +37,19 @@ final videoListProvider = StreamProvider.autoDispose((ref) async* {
   List<MyVideoData> videoList = const [];
   await for (final item in serviceStream) {
     final controller = VideoPlayerController.network(item.dashmpd!.toString());
-    id += 1;
+    Result<VideoPlayerController, String> res = Success(controller);
 
-    final videoData =
-        MyVideoData(video: Success(controller), service: item, id: id);
+    if (id < 3) {
+      try {
+        await controller.initialize();
+      } catch (e) {
+        res = Error(e.toString());
+      }
+    }
+
+    final videoData = MyVideoData(video: res, service: item, id: id);
     videoList = [...videoList, videoData];
     yield videoList;
+    id += 1;
   }
 });
