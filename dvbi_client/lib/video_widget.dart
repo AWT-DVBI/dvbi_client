@@ -11,19 +11,24 @@ import 'main.dart';
 import 'package:dvbi_lib/dvbi_lib.dart';
 import 'dart:developer' as dev;
 
-// Code generation
-import 'package:flutter/foundation.dart';
-import 'package:freezed_annotation/freezed_annotation.dart';
-part 'video_widget.freezed.dart';
-
 typedef MyVideoController = Result<VideoPlayerController?, String>;
 
-@freezed
-class MyVideoData with _$MyVideoData {
-  const factory MyVideoData(
-      {required ServiceElem service,
-      required MyVideoController video,
-      required int id}) = _MyVideoData;
+@immutable
+class MyVideoData {
+  final ServiceElem service;
+  final MyVideoController video;
+  final int id;
+
+  const MyVideoData(
+      {required this.service, required this.video, required this.id});
+
+  MyVideoData copyWith(
+      {ServiceElem? service, MyVideoController? video, int? id}) {
+    return MyVideoData(
+        service: service ?? this.service,
+        video: video ?? this.video,
+        id: id ?? this.id);
+  }
 }
 
 class AsyncVideoDataNotifier
@@ -36,35 +41,44 @@ class AsyncVideoDataNotifier
       return;
     }
 
-    final data = state.value!;
     state = const AsyncValue.loading();
 
     state = await AsyncValue.guard(() async {
-      logger.d("await initializing video: $id");
+      loggerNoStack.d("await initializing video: $id");
 
-      final controller =
-          VideoPlayerController.network(data[id].service.dashmpd!.toString());
+      final res = state.value!.map((data) async {
+        if (data.id == id) {
+          final controller =
+              VideoPlayerController.network(data.service.dashmpd!.toString());
 
-      try {
-        await controller.initialize();
-        data[id] = data[id].copyWith(video: Success(controller));
-      } catch (e) {
-        data[id] = data[id].copyWith(video: Error(e.toString()));
-      }
+          try {
+            await controller.initialize();
+            return data.copyWith(video: Success(controller));
+          } catch (e) {
+            return data.copyWith(video: Error(e.toString()));
+          }
+        }
+        return data;
+      });
 
-      logger.d("Now starting video: $id");
-      return data;
+      loggerNoStack.d("Now starting video: $id");
+      return Future.wait(res.toList());
     });
   }
 
   Future<void> deinit(int id) async {
-    var data = state.value!;
     state = const AsyncValue.loading();
     state = await AsyncValue.guard(() async {
-      await data[id].video.tryGetSuccess()!.dispose();
-      data[id] = data[id].copyWith(video: const Success(null));
+      final res = state.value!.map((data) async {
+        if (data.id == id) {
+          await data.video.tryGetSuccess()!.dispose();
+          return data.copyWith(video: const Success(null));
+        }
+        return data;
+      });
 
-      return data;
+      loggerNoStack.d("Uninit video id $id");
+      return Future.wait(res.toList());
     });
   }
 
@@ -88,6 +102,7 @@ class AsyncVideoDataNotifier
       videoList.add(videoData);
       id += 1;
     }
+    loggerNoStack.i("Rebuilding list");
     return videoList;
   }
 

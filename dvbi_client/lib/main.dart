@@ -9,7 +9,6 @@ import 'package:flutter/services.dart' show rootBundle;
 import 'package:logger/logger.dart';
 // Code generation
 import 'package:flutter/foundation.dart';
-import 'package:freezed_annotation/freezed_annotation.dart';
 
 const String endpointUrl = "https://dvb-i.net/production/services.php/de";
 
@@ -24,16 +23,6 @@ final dvbiProvider = FutureProvider.autoDispose((ref) async {
 var logger = Logger(printer: PrettyPrinter());
 
 var loggerNoStack = Logger(printer: PrettyPrinter(methodCount: 0));
-
-// class MyFilter extends LogFilter {
-//   @override
-//   bool shouldLog(LogEvent event) {
-
-//     if (event.level == Level. )
-
-//     return true;
-//   }
-// }
 
 void main() {
   runApp(

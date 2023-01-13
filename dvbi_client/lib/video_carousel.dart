@@ -12,40 +12,51 @@ import 'main.dart';
 import 'package:logger/logger.dart';
 
 @immutable
-class Page {
-  const Page({required this.prev, required this.curr});
+class MyPage {
+  const MyPage({required this.prev, required this.curr});
 
-  final List<int> prev;
+  final int? prev;
   final int curr;
 
-  Page copyWith({List<int>? prev, int? curr}) {
-    return Page(curr: curr ?? this.curr, prev: prev ?? this.prev);
+  MyPage copyWith({int? prev, int? curr}) {
+    return MyPage(curr: curr ?? this.curr, prev: prev ?? this.prev);
   }
 }
 
-class PageNotifier extends StateNotifier<Page> {
-  PageNotifier({required this.ref}) : super(const Page(curr: 0, prev: []));
-  final Ref ref;
+class PageNotifier extends AsyncNotifier<MyPage> {
+  PageNotifier() : super();
+
+  @override
+  Future<MyPage> build() async {
+    const page = MyPage(prev: null, curr: 0);
+    loggerNoStack.i("Rebuilding mypage");
+    return Future.value(page);
+  }
 
   int get currPage {
-    return state.curr;
+    return state.value!.curr;
   }
 
-  void setCurrPage(int curr) {
-    final List<int> sub;
-    if (state.prev.length > 2) {
-      sub = state.prev.sublist(1, 3);
-      ref.read(asyncVideoDataProvider.notifier).deinit(state.prev.first);
-    } else {
-      sub = state.prev + [state.curr];
-    }
+  Future<void> setCurrPage(int curr) async {
+    // final List<int> sub;
+    // if (state.prev.length > 1) {
+    //   sub = state.prev.sublist(1, 2);
+    //   ref.read(asyncVideoDataProvider.notifier).deinit(state.prev.first);
+    // } else {
+    //   sub = state.prev + [state.curr];
+    // }
+    var data = state.value!;
 
-    state = state.copyWith(prev: sub, curr: curr);
+    state = await AsyncValue.guard(() async {
+      // await ref.read(asyncVideoDataProvider.notifier).deinit(data.curr);
+      await ref.read(asyncVideoDataProvider.notifier).initialize(curr);
+      return data.copyWith(prev: data.curr, curr: curr);
+    });
   }
 }
 
-final getPageProvider = StateNotifierProvider<PageNotifier, Page>((ref) {
-  return PageNotifier(ref: ref);
+final getPageProvider = AsyncNotifierProvider<PageNotifier, MyPage>(() {
+  return PageNotifier();
 });
 
 final carouselControllerProvider = Provider<CarouselController>((ref) {
@@ -103,6 +114,7 @@ class VideoCarousel extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final CarouselController carControl = ref.watch(carouselControllerProvider);
     final asyncList = ref.watch(asyncVideoDataProvider);
+    final page = ref.watch(getPageProvider);
 
     return Stack(children: [
       CarouselSlider(
@@ -115,14 +127,14 @@ class VideoCarousel extends ConsumerWidget {
                             child: Text(error.toString())))
                   ])
                 ],
-            loading: () => [const CircularProgressIndicator()]),
+            loading: () => [const Center(child: CircularProgressIndicator())]),
         carouselController: carControl,
         options: CarouselOptions(
-          onPageChanged: (index, reason) {
-            ref.read(getPageProvider.notifier).setCurrPage(index);
-            ref.read(asyncVideoDataProvider.notifier).initialize(index);
+          onPageChanged: (index, reason) async {
+            loggerNoStack.i("onPageChanged index: $index, reason: $reason");
+            await ref.read(getPageProvider.notifier).setCurrPage(index);
           },
-          onScrolled: (value) {},
+          //  onScrolled: (value) {},
           enableInfiniteScroll: false,
           autoPlay: false,
           enlargeCenterPage: true,
@@ -139,7 +151,9 @@ class VideoCarousel extends ConsumerWidget {
           child: Container(
               color: Colors.lightBlue,
               child: Center(
-                  child: Text(ref.watch(getPageProvider).curr.toString()))),
+                  child: page.value != null
+                      ? Text(page.value!.curr.toString())
+                      : const Text("Loading"))),
         ),
       ),
       Align(
