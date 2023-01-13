@@ -1,36 +1,44 @@
-import 'dart:io';
+// ignore_for_file: depend_on_referenced_packages
 
+import 'dart:io';
 import 'package:chewie/chewie.dart';
 import 'package:dvbi_client/app/theme.dart';
 import 'package:flutter/material.dart';
-// ignore: depend_on_referenced_packages
 import 'package:video_player/video_player.dart';
+import 'package:logger/logger.dart';
+import 'package:dvbi_lib/dvbi_lib.dart';
 
-class ChewieDemo extends StatefulWidget {
-  const ChewieDemo({
-    Key? key,
-    this.title = 'Chewie Demo',
-  }) : super(key: key);
+var logger = Logger(printer: PrettyPrinter());
+var loggerNoStack = Logger(printer: PrettyPrinter(methodCount: 0));
+
+class IPTVPlayer extends StatefulWidget {
+  const IPTVPlayer(
+      {Key? key, this.title = 'IPTV Player', this.dvbi, this.endpoint})
+      : super(key: key);
 
   final String title;
+  final DVBI? dvbi;
+  final Uri? endpoint;
 
   @override
   State<StatefulWidget> createState() {
-    return _ChewieDemoState();
+    return _IPTVPlayerState();
   }
 }
 
-class _ChewieDemoState extends State<ChewieDemo> {
+class _IPTVPlayerState extends State<IPTVPlayer> {
   TargetPlatform? _platform;
   late VideoPlayerController _videoPlayerController1;
   late VideoPlayerController _videoPlayerController2;
   ChewieController? _chewieController;
   int? bufferDelay;
+  late DVBI dvbi;
+  late List<ServiceElem> serviceElems;
 
   @override
   void initState() {
     super.initState();
-    initializePlayer();
+    initializeEverything();
   }
 
   @override
@@ -41,17 +49,26 @@ class _ChewieDemoState extends State<ChewieDemo> {
     super.dispose();
   }
 
-  List<String> srcs = [
-    "https://assets.mixkit.co/videos/preview/mixkit-spinning-around-the-earth-29351-large.mp4",
-    "https://assets.mixkit.co/videos/preview/mixkit-daytime-city-traffic-aerial-view-56-large.mp4",
-    "https://assets.mixkit.co/videos/preview/mixkit-a-girl-blowing-a-bubble-gum-at-an-amusement-park-1226-large.mp4"
-  ];
+  Future<void> initializeSources() async {
+    if (widget.dvbi != null) {
+      dvbi = widget.dvbi!;
+    } else {
+      dvbi = await DVBI.create(endpointUrl: widget.endpoint!);
+    }
+    serviceElems =
+        dvbi.serviceElems.where((element) => element.dashmpd != null).toList();
+  }
+
+  Future<void> initializeEverything() async {
+    await initializeSources();
+    await initializePlayer();
+  }
 
   Future<void> initializePlayer() async {
-    _videoPlayerController1 =
-        VideoPlayerController.network(srcs[currPlayIndex]);
-    _videoPlayerController2 =
-        VideoPlayerController.network(srcs[currPlayIndex]);
+    _videoPlayerController1 = VideoPlayerController.network(
+        serviceElems[currPlayIndex].dashmpd.toString());
+    _videoPlayerController2 = VideoPlayerController.network(
+        serviceElems[currPlayIndex].dashmpd.toString());
     await Future.wait([
       _videoPlayerController1.initialize(),
       _videoPlayerController2.initialize()
@@ -61,61 +78,12 @@ class _ChewieDemoState extends State<ChewieDemo> {
   }
 
   void _createChewieController() {
-    // final subtitles = [
-    //     Subtitle(
-    //       index: 0,
-    //       start: Duration.zero,
-    //       end: const Duration(seconds: 10),
-    //       text: 'Hello from subtitles',
-    //     ),
-    //     Subtitle(
-    //       index: 0,
-    //       start: const Duration(seconds: 10),
-    //       end: const Duration(seconds: 20),
-    //       text: 'Whats up? :)',
-    //     ),
-    //   ];
-
-    final subtitles = [
-      Subtitle(
-        index: 0,
-        start: Duration.zero,
-        end: const Duration(seconds: 10),
-        text: const TextSpan(
-          children: [
-            TextSpan(
-              text: 'Hello',
-              style: TextStyle(color: Colors.red, fontSize: 22),
-            ),
-            TextSpan(
-              text: ' from ',
-              style: TextStyle(color: Colors.green, fontSize: 20),
-            ),
-            TextSpan(
-              text: 'subtitles',
-              style: TextStyle(color: Colors.blue, fontSize: 18),
-            )
-          ],
-        ),
-      ),
-      Subtitle(
-        index: 0,
-        start: const Duration(seconds: 10),
-        end: const Duration(seconds: 20),
-        text: 'Whats up? :)',
-        // text: const TextSpan(
-        //   text: 'Whats up? :)',
-        //   style: TextStyle(color: Colors.amber, fontSize: 22, fontStyle: FontStyle.italic),
-        // ),
-      ),
-    ];
-
     _chewieController = ChewieController(
       videoPlayerController: _videoPlayerController1,
       autoPlay: true,
       looping: true,
-      progressIndicatorDelay:
-          bufferDelay != null ? Duration(milliseconds: bufferDelay!) : null,
+      isLive: true,
+      fullScreenByDefault: true,
 
       additionalOptions: (context) {
         return <OptionItem>[
@@ -126,7 +94,7 @@ class _ChewieDemoState extends State<ChewieDemo> {
           ),
         ];
       },
-      subtitle: Subtitles(subtitles),
+
       subtitleBuilder: (context, dynamic subtitle) => Container(
         padding: const EdgeInsets.all(10.0),
         child: subtitle is InlineSpan
@@ -139,7 +107,7 @@ class _ChewieDemoState extends State<ChewieDemo> {
               ),
       ),
 
-      hideControlsTimer: const Duration(seconds: 1),
+      hideControlsTimer: const Duration(seconds: 3),
 
       // Try playing around with some of these other options:
 
@@ -162,7 +130,7 @@ class _ChewieDemoState extends State<ChewieDemo> {
   Future<void> toggleVideo() async {
     await _videoPlayerController1.pause();
     currPlayIndex += 1;
-    if (currPlayIndex >= srcs.length) {
+    if (currPlayIndex >= serviceElems.length) {
       currPlayIndex = 0;
     }
     await initializePlayer();
@@ -172,13 +140,10 @@ class _ChewieDemoState extends State<ChewieDemo> {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: widget.title,
-      theme: AppTheme.light.copyWith(
+      theme: AppTheme.dark.copyWith(
         platform: _platform ?? Theme.of(context).platform,
       ),
       home: Scaffold(
-        appBar: AppBar(
-          title: Text(widget.title),
-        ),
         body: Column(
           children: <Widget>[
             Expanded(
@@ -199,185 +164,8 @@ class _ChewieDemoState extends State<ChewieDemo> {
                       ),
               ),
             ),
-            TextButton(
-              onPressed: () {
-                _chewieController?.enterFullScreen();
-              },
-              child: const Text('Fullscreen'),
-            ),
-            Row(
-              children: <Widget>[
-                Expanded(
-                  child: TextButton(
-                    onPressed: () {
-                      setState(() {
-                        _videoPlayerController1.pause();
-                        _videoPlayerController1.seekTo(Duration.zero);
-                        _createChewieController();
-                      });
-                    },
-                    child: const Padding(
-                      padding: EdgeInsets.symmetric(vertical: 16.0),
-                      child: Text("Landscape Video"),
-                    ),
-                  ),
-                ),
-                Expanded(
-                  child: TextButton(
-                    onPressed: () {
-                      setState(() {
-                        _videoPlayerController2.pause();
-                        _videoPlayerController2.seekTo(Duration.zero);
-                        _chewieController = _chewieController!.copyWith(
-                          videoPlayerController: _videoPlayerController2,
-                          autoPlay: true,
-                          looping: true,
-                          /* subtitle: Subtitles([
-                            Subtitle(
-                              index: 0,
-                              start: Duration.zero,
-                              end: const Duration(seconds: 10),
-                              text: 'Hello from subtitles',
-                            ),
-                            Subtitle(
-                              index: 0,
-                              start: const Duration(seconds: 10),
-                              end: const Duration(seconds: 20),
-                              text: 'Whats up? :)',
-                            ),
-                          ]),
-                          subtitleBuilder: (context, subtitle) => Container(
-                            padding: const EdgeInsets.all(10.0),
-                            child: Text(
-                              subtitle,
-                              style: const TextStyle(color: Colors.white),
-                            ),
-                          ), */
-                        );
-                      });
-                    },
-                    child: const Padding(
-                      padding: EdgeInsets.symmetric(vertical: 16.0),
-                      child: Text("Portrait Video"),
-                    ),
-                  ),
-                )
-              ],
-            ),
-            Row(
-              children: <Widget>[
-                Expanded(
-                  child: TextButton(
-                    onPressed: () {
-                      setState(() {
-                        _platform = TargetPlatform.android;
-                      });
-                    },
-                    child: const Padding(
-                      padding: EdgeInsets.symmetric(vertical: 16.0),
-                      child: Text("Android controls"),
-                    ),
-                  ),
-                ),
-                Expanded(
-                  child: TextButton(
-                    onPressed: () {
-                      setState(() {
-                        _platform = TargetPlatform.iOS;
-                      });
-                    },
-                    child: const Padding(
-                      padding: EdgeInsets.symmetric(vertical: 16.0),
-                      child: Text("iOS controls"),
-                    ),
-                  ),
-                )
-              ],
-            ),
-            Row(
-              children: <Widget>[
-                Expanded(
-                  child: TextButton(
-                    onPressed: () {
-                      setState(() {
-                        _platform = TargetPlatform.windows;
-                      });
-                    },
-                    child: const Padding(
-                      padding: EdgeInsets.symmetric(vertical: 16.0),
-                      child: Text("Desktop controls"),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            if (Platform.isAndroid)
-              ListTile(
-                title: const Text("Delay"),
-                subtitle: DelaySlider(
-                  delay:
-                      _chewieController?.progressIndicatorDelay?.inMilliseconds,
-                  onSave: (delay) async {
-                    if (delay != null) {
-                      bufferDelay = delay == 0 ? null : delay;
-                      await initializePlayer();
-                    }
-                  },
-                ),
-              )
           ],
         ),
-      ),
-    );
-  }
-}
-
-class DelaySlider extends StatefulWidget {
-  const DelaySlider({Key? key, required this.delay, required this.onSave})
-      : super(key: key);
-
-  final int? delay;
-  final void Function(int?) onSave;
-  @override
-  State<DelaySlider> createState() => _DelaySliderState();
-}
-
-class _DelaySliderState extends State<DelaySlider> {
-  int? delay;
-  bool saved = false;
-
-  @override
-  void initState() {
-    super.initState();
-    delay = widget.delay;
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    const int max = 1000;
-    return ListTile(
-      title: Text(
-        "Progress indicator delay ${delay != null ? "${delay.toString()} MS" : ""}",
-      ),
-      subtitle: Slider(
-        value: delay != null ? (delay! / max) : 0,
-        onChanged: (value) async {
-          delay = (value * max).toInt();
-          setState(() {
-            saved = false;
-          });
-        },
-      ),
-      trailing: IconButton(
-        icon: const Icon(Icons.save),
-        onPressed: saved
-            ? null
-            : () {
-                widget.onSave(delay);
-                setState(() {
-                  saved = true;
-                });
-              },
       ),
     );
   }

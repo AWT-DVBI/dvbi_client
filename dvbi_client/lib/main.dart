@@ -15,6 +15,8 @@ var loggerNoStack = Logger(printer: PrettyPrinter(methodCount: 0));
 
 void main() {
   runApp(
-    const ChewieDemo(),
+    IPTVPlayer(
+      endpoint: Uri.parse(endpointUrl),
+    ),
   );
 }
