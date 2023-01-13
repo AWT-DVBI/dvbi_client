@@ -18,6 +18,7 @@ class DVBIException implements Exception {
 
 /**
    * detailed information about specific program
+   * obtained after request with pid
    */
 class ProgramInfo {
   String programId;
@@ -115,6 +116,26 @@ class ProgramInfo {
       };
 }
 
+class ProgramScheduleInfoTimestamp {
+  //anfrage über bestimmten zeit radius
+
+  //TODO sort by program starttime
+  List<Program> programs = [];
+
+  ProgramScheduleInfoTimestamp({required this.programs});
+
+  factory ProgramScheduleInfoTimestamp.parse({required XmlDocument data}) {
+    List<Program> programs = [];
+
+    for (int i = 0;
+        i < data.findAllElements("ProgramInformation").length;
+        i++) {
+      programs.add(Program.parseTimestamps(timestampData: data));
+    }
+    return ProgramScheduleInfoTimestamp(programs: programs);
+  }
+}
+
 /**
  * for now_next = true programinfo xml-parser
  * more info see dvbi docs - 6.5.3 Now/Next Filtered Schedule Request
@@ -157,7 +178,9 @@ class ProgramScheduleInfo_nownext {
   }
 }
 
-// prgramminfo
+/**
+ * reqresents a progaminformation after requesting now_next or doing a timespecific request
+ */
 class Program {
   //ProgramInformation programId i.e.="crid://zdf.de/metadata/broadcast_item/83791/"
   String pid;
@@ -165,7 +188,7 @@ class Program {
   //program description Synopsis
   String synopsis;
   //pictureUrl-MediaUri
-  String mediaUrl;
+  String? mediaUrl;
   //schedule PublishedStartTime-- erkennen über id
   String startTime;
 
@@ -193,17 +216,68 @@ class Program {
         .getElement("Synopsis")!
         .innerText;
     //TODO evtl uri
-    String mediaUrl = dataProg
-        .getElement("BasicDescription")!
-        .getElement("RelatedMaterial")!
-        .getElement("MediaLocator")!
-        .getElement("MediaUri")!
-        .innerText;
+
+    String? mediaUrl;
+
+    if (dataProg
+            .getElement("BasicDescription")!
+            .getElement("RelatedMaterial") !=
+        null) {
+      mediaUrl = dataProg
+          .getElement("BasicDescription")!
+          .getElement("RelatedMaterial")!
+          .getElement("MediaLocator")!
+          .getElement("MediaUri")!
+          .innerText;
+    }
 
     String startTime = dataSchedule.getElement("PublishedStartTime")!.innerText;
 
     String programDuration =
         dataSchedule.getElement("PublishedDuration")!.innerText;
+
+    return Program(
+        pid: pid,
+        title: title,
+        synopsis: synopsis,
+        mediaUrl: mediaUrl,
+        startTime: startTime,
+        programDuration: programDuration);
+  }
+
+  factory Program.parseTimestamps({required XmlDocument timestampData}) {
+    //TODO correct parsings
+
+    String pid = timestampData.getAttribute("programId")!;
+    String title = timestampData
+        .getElement("BasicDescription")!
+        .getElement("Title")!
+        .innerText;
+    String? synopsis = timestampData
+        .getElement("BasicDescription")!
+        .getElement("Synopsis")!
+        .innerText;
+    //TODO evtl uri
+
+    String? mediaUrl;
+
+    if (timestampData
+            .getElement("BasicDescription")!
+            .getElement("RelatedMaterial") !=
+        null) {
+      mediaUrl = timestampData
+          .getElement("BasicDescription")!
+          .getElement("RelatedMaterial")!
+          .getElement("MediaLocator")!
+          .getElement("MediaUri")!
+          .innerText;
+    }
+
+    String startTime =
+        timestampData.getElement("PublishedStartTime")!.innerText;
+
+    String programDuration =
+        timestampData.getElement("PublishedDuration")!.innerText;
 
     return Program(
         pid: pid,
@@ -433,6 +507,89 @@ class ServiceElem {
         logo: logo,
         contentGuideServiceRef: contentGuideServiceRef);
   }
+
+/**
+   * req for programscheduleInfo
+   */
+  Stream<ProgramScheduleInfo_nownext> programScheduleInfoNowNext() async* {
+    final String xmlData;
+
+    if (contentGuideSourceElem != null) {
+      if (contentGuideSourceElem!.scheduleInfoEndpoint.isScheme("HTTP") ||
+          contentGuideSourceElem!.scheduleInfoEndpoint.isScheme("HTTPS")) {
+        // String endpoint =scheduleInfoEndpoint + '?' + sid + '&' + 'now_next=true';
+
+        String myScheduleInfoEndpoint =
+            contentGuideSourceElem!.scheduleInfoEndpoint.toString();
+
+        // contentGuideServiceRef has prevalance over uniqueID
+        String sid = (contentGuideServiceRef != null)
+            ? contentGuideServiceRef!
+            : uniqueIdentifier;
+
+        String endpoint = '$myScheduleInfoEndpoint?sid=$sid&now_next=true';
+
+        print(endpoint + " in" + "pSI function");
+
+        var res = await http.get(Uri.parse(endpoint));
+
+        if (res.statusCode != 200) {
+          throw DVBIException(
+              "Status code invalid. Code: ${res.statusCode} Reason: ${res.reasonPhrase}");
+        }
+        xmlData = res.body;
+      } else {
+        print("in else?");
+        var res = File.fromUri(contentGuideSourceElem!.scheduleInfoEndpoint);
+
+        xmlData = await res.readAsString();
+      }
+
+      final scheduleData = XmlDocument.parse(xmlData);
+
+      //return as stream
+      yield ProgramScheduleInfo_nownext.parse(data: scheduleData);
+    } else {
+      print("contentGuideSourceElem is null -> no request can be made");
+    }
+  }
+
+  Stream<ProgramInfo> getProgramInfo(pid) async* {
+    //TODO is it possible that cgse is not null but piEndpoint?
+    if (contentGuideSourceElem!.programInfoEndpoint != null) {
+      final String xmlData;
+
+      //TODO check if works
+      String endpoint =
+          '${contentGuideSourceElem!.programInfoEndpoint!}?pid=$pid';
+
+      if (contentGuideSourceElem!.programInfoEndpoint!.isScheme("HTTP") ||
+          contentGuideSourceElem!.programInfoEndpoint!.isScheme("HTTPS")) {
+        // String endpoint =scheduleInfoEndpoint + '?' + sid + '&' + 'now_next=true';
+
+        print(endpoint + " in" + "pSI function");
+
+        var res = await http.get(Uri.parse(endpoint));
+
+        if (res.statusCode != 200) {
+          throw DVBIException(
+              "Status code invalid. Code: ${res.statusCode} Reason: ${res.reasonPhrase}");
+        }
+        xmlData = res.body;
+      } else {
+        print("in else?");
+
+        var res = File.fromUri(contentGuideSourceElem!.programInfoEndpoint!);
+
+        xmlData = await res.readAsString();
+      }
+
+      final programInfo = XmlDocument.parse(xmlData);
+
+      //return as stream
+      yield ProgramInfo.parse(data: programInfo);
+    }
+  }
 }
 
 class DVBI {
@@ -510,7 +667,6 @@ class DVBI {
     yield ProgramScheduleInfo_nownext.parse(data: scheduleData);
   }
 
-  //delete proginfoxml because http request will be in future methode
   Stream<ProgramInfo> getProgramInfo(endpointpi, pid) async* {
     //
 
