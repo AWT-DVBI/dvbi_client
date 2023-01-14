@@ -1,12 +1,12 @@
 // ignore_for_file: depend_on_referenced_packages
 
-import 'dart:io';
 import 'package:chewie/chewie.dart';
 import 'package:dvbi_client/app/theme.dart';
 import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
 import 'package:logger/logger.dart';
 import 'package:dvbi_lib/dvbi_lib.dart';
+import 'package:result_type/result_type.dart';
 
 var logger = Logger(printer: PrettyPrinter());
 var loggerNoStack = Logger(printer: PrettyPrinter(methodCount: 0));
@@ -30,7 +30,7 @@ class _IPTVPlayerState extends State<IPTVPlayer> {
   TargetPlatform? _platform;
   late VideoPlayerController _videoPlayerController1;
   late VideoPlayerController _videoPlayerController2;
-  ChewieController? _chewieController;
+  Result<ChewieController?, String> _chewieController = Success(null);
   int? bufferDelay;
   late DVBI dvbi;
   late List<ServiceElem> serviceElems;
@@ -45,7 +45,7 @@ class _IPTVPlayerState extends State<IPTVPlayer> {
   void dispose() {
     _videoPlayerController1.dispose();
     _videoPlayerController2.dispose();
-    _chewieController?.dispose();
+    _chewieController.success?.dispose();
     super.dispose();
   }
 
@@ -69,43 +69,48 @@ class _IPTVPlayerState extends State<IPTVPlayer> {
         serviceElems[currPlayIndex].dashmpd.toString());
     _videoPlayerController2 = VideoPlayerController.network(
         serviceElems[currPlayIndex].dashmpd.toString());
-    await Future.wait([
-      _videoPlayerController1.initialize(),
-      _videoPlayerController2.initialize()
-    ]);
+    try {
+      await Future.wait([
+        _videoPlayerController1.initialize(),
+        _videoPlayerController2.initialize()
+      ]);
+    } catch (e) {
+      _chewieController.success!.dispose();
+      _chewieController = Failure(e.toString());
+      setState(() {});
+      return;
+    }
     _createChewieController();
     setState(() {});
   }
 
+  Widget videoPlaybackError(BuildContext context, String error) {
+    return Row(
+        children: [Expanded(child: SingleChildScrollView(child: Text(error)))]);
+  }
+
   void _createChewieController() {
-    _chewieController = ChewieController(
+    final chewieController = ChewieController(
       videoPlayerController: _videoPlayerController1,
       autoPlay: true,
       looping: true,
       isLive: true,
       fullScreenByDefault: true,
-
+      errorBuilder: videoPlaybackError,
       additionalOptions: (context) {
         return <OptionItem>[
           OptionItem(
-            onTap: toggleVideo,
+            onTap: nextChannel,
             iconData: Icons.live_tv_sharp,
-            title: 'Toggle Video Src',
+            title: 'Next Channel',
+          ),
+          OptionItem(
+            onTap: prevChannel,
+            iconData: Icons.live_tv_sharp,
+            title: 'Prev Channel',
           ),
         ];
       },
-
-      subtitleBuilder: (context, dynamic subtitle) => Container(
-        padding: const EdgeInsets.all(10.0),
-        child: subtitle is InlineSpan
-            ? RichText(
-                text: subtitle,
-              )
-            : Text(
-                subtitle.toString(),
-                style: const TextStyle(color: Colors.black),
-              ),
-      ),
 
       hideControlsTimer: const Duration(seconds: 3),
 
@@ -123,11 +128,13 @@ class _IPTVPlayerState extends State<IPTVPlayer> {
       // ),
       // autoInitialize: true,
     );
+
+    _chewieController = Success(chewieController);
   }
 
   int currPlayIndex = 0;
 
-  Future<void> toggleVideo() async {
+  Future<void> nextChannel() async {
     await _videoPlayerController1.pause();
     currPlayIndex += 1;
     if (currPlayIndex >= serviceElems.length) {
@@ -136,36 +143,45 @@ class _IPTVPlayerState extends State<IPTVPlayer> {
     await initializePlayer();
   }
 
+  Future<void> prevChannel() async {
+    await _videoPlayerController1.pause();
+    currPlayIndex -= 1;
+    if (currPlayIndex < 0) {
+      currPlayIndex = serviceElems.length - 1;
+    }
+    await initializePlayer();
+  }
+
+  Widget buildVideoPlayer() {
+    if (_chewieController.isSuccess) {
+      final chewieController = _chewieController.success;
+      return chewieController != null &&
+              chewieController.videoPlayerController.value.isInitialized
+          ? Chewie(
+              controller: chewieController,
+            )
+          : Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: const [
+                CircularProgressIndicator(),
+                SizedBox(height: 20),
+                Text('Loading'),
+              ],
+            );
+    } else {
+      return videoPlaybackError(context, _chewieController.failure);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       title: widget.title,
-      theme: AppTheme.dark.copyWith(
-        platform: _platform ?? Theme.of(context).platform,
-      ),
-      home: Scaffold(
-        body: Column(
-          children: <Widget>[
-            Expanded(
-              child: Center(
-                child: _chewieController != null &&
-                        _chewieController!
-                            .videoPlayerController.value.isInitialized
-                    ? Chewie(
-                        controller: _chewieController!,
-                      )
-                    : Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: const [
-                          CircularProgressIndicator(),
-                          SizedBox(height: 20),
-                          Text('Loading'),
-                        ],
-                      ),
-              ),
-            ),
-          ],
-        ),
+      theme: AppTheme.dark,
+      home: Column(
+        children: <Widget>[
+          Expanded(child: Center(child: buildVideoPlayer())),
+        ],
       ),
     );
   }
