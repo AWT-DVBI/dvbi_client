@@ -95,7 +95,7 @@ class _IPTVPlayerState extends State<IPTVPlayer> {
       autoPlay: true,
       looping: true,
       isLive: true,
-      fullScreenByDefault: true,
+      fullScreenByDefault: false,
       errorBuilder: videoPlaybackError,
       additionalOptions: (context) {
         return <OptionItem>[
