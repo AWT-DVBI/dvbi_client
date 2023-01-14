@@ -7,6 +7,7 @@ import 'package:video_player/video_player.dart';
 import 'package:logger/logger.dart';
 import 'package:dvbi_lib/dvbi_lib.dart';
 import 'package:result_type/result_type.dart';
+import 'video_player_controls.dart';
 
 var logger = Logger(printer: PrettyPrinter());
 var loggerNoStack = Logger(printer: PrettyPrinter(methodCount: 0));
@@ -27,7 +28,6 @@ class IPTVPlayer extends StatefulWidget {
 }
 
 class _IPTVPlayerState extends State<IPTVPlayer> {
-  TargetPlatform? _platform;
   late VideoPlayerController _videoPlayerController1;
   late VideoPlayerController _videoPlayerController2;
   Result<ChewieController?, String> _chewieController = Success(null);
@@ -95,6 +95,7 @@ class _IPTVPlayerState extends State<IPTVPlayer> {
       autoPlay: true,
       looping: true,
       isLive: true,
+      customControls: const MyMaterialControls(showPlayButton: true),
       fullScreenByDefault: false,
       errorBuilder: videoPlaybackError,
       additionalOptions: (context) {
