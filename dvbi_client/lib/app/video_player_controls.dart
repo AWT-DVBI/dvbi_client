@@ -13,16 +13,25 @@ import 'package:chewie/src/models/option_item.dart';
 import 'package:chewie/src/models/subtitle_model.dart';
 import 'package:chewie/src/notifiers/index.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:video_player/video_player.dart';
+import 'package:logger/logger.dart';
+
+var logger = Logger(printer: PrettyPrinter());
+var loggerNoStack = Logger(printer: PrettyPrinter(methodCount: 0));
 
 class MyMaterialControls extends StatefulWidget {
   const MyMaterialControls({
     this.showPlayButton = true,
+    required this.nextSrc,
+    required this.prevSrc,
     Key? key,
   }) : super(key: key);
 
   final bool showPlayButton;
+  final dynamic Function() nextSrc;
+  final dynamic Function() prevSrc;
 
   @override
   State<StatefulWidget> createState() {
@@ -76,43 +85,81 @@ class _MyMaterialControlsState extends State<MyMaterialControls>
           );
     }
 
+    void onSwipe(DragEndDetails details) {
+      loggerNoStack.d("Drag end");
+      // Swiping in right direction.
+      if (details.primaryVelocity! > 0) {
+        loggerNoStack.d("Swiped right");
+        widget.prevSrc();
+      }
+
+      // Swiping in left direction.
+      if (details.primaryVelocity! < 0) {
+        loggerNoStack.d("Swiped left");
+        widget.nextSrc();
+      }
+    }
+
+    KeyEventResult handleKeyPress(FocusNode node, KeyEvent? event) {
+      LogicalKeyboardKey key = event!.logicalKey;
+      loggerNoStack.d("Keypressed: $key");
+
+      if (key == LogicalKeyboardKey.arrowLeft ||
+          key == LogicalKeyboardKey.arrowDown) {
+        widget.prevSrc();
+        return KeyEventResult.handled;
+      }
+
+      if (key == LogicalKeyboardKey.arrowRight ||
+          key == LogicalKeyboardKey.arrowUp) {
+        widget.nextSrc();
+        return KeyEventResult.handled;
+      }
+
+      return KeyEventResult.ignored;
+    }
+
     return MouseRegion(
-      onHover: (_) {
-        _cancelAndRestartTimer();
-      },
-      child: GestureDetector(
-        onTap: () => _cancelAndRestartTimer(),
-        child: AbsorbPointer(
-          absorbing: notifier.hideStuff,
-          child: Stack(
-            children: [
-              if (_displayBufferingIndicator)
-                const Center(
-                  child: CircularProgressIndicator(),
-                )
-              else
-                _buildHitArea(),
-              _buildActionBar(),
-              Column(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: <Widget>[
-                  if (_subtitleOn)
-                    Transform.translate(
-                      offset: Offset(
-                        0.0,
-                        notifier.hideStuff ? barHeight * 0.8 : 0.0,
-                      ),
-                      child:
-                          _buildSubtitles(context, chewieController.subtitle!),
+        onHover: (_) {
+          _cancelAndRestartTimer();
+        },
+        child: Focus(
+          autofocus: true,
+          onKeyEvent: handleKeyPress,
+          child: GestureDetector(
+            onTap: () => _cancelAndRestartTimer(),
+            onHorizontalDragEnd: (details) => onSwipe(details),
+            child: AbsorbPointer(
+              absorbing: notifier.hideStuff,
+              child: Stack(
+                children: [
+                  if (_displayBufferingIndicator)
+                    const Center(
+                      child: CircularProgressIndicator(),
                     ),
-                  _buildBottomBar(context),
+                  // else
+                  //   _buildHitArea(),
+                  _buildActionBar(),
+                  Column(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: <Widget>[
+                      if (_subtitleOn)
+                        Transform.translate(
+                          offset: Offset(
+                            0.0,
+                            notifier.hideStuff ? barHeight * 0.8 : 0.0,
+                          ),
+                          child: _buildSubtitles(
+                              context, chewieController.subtitle!),
+                        ),
+                      _buildBottomBar(context),
+                    ],
+                  ),
                 ],
               ),
-            ],
+            ),
           ),
-        ),
-      ),
-    );
+        ));
   }
 
   @override

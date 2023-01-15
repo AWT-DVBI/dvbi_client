@@ -1,4 +1,4 @@
-// ignore_for_file: depend_on_referenced_packages
+// ignore_for_file: depend_on_referenced_packages, unused_import
 
 import 'package:chewie/chewie.dart';
 import 'package:dvbi_client/app/theme.dart';
@@ -8,6 +8,7 @@ import 'package:logger/logger.dart';
 import 'package:dvbi_lib/dvbi_lib.dart';
 import 'package:result_type/result_type.dart';
 import 'video_player_controls.dart';
+import 'package:flutter/services.dart' show rootBundle;
 
 var logger = Logger(printer: PrettyPrinter());
 var loggerNoStack = Logger(printer: PrettyPrinter(methodCount: 0));
@@ -34,6 +35,7 @@ class _IPTVPlayerState extends State<IPTVPlayer> {
   int? bufferDelay;
   late DVBI dvbi;
   late List<ServiceElem> serviceElems;
+  int currPlayIndex = 0;
 
   @override
   void initState() {
@@ -53,6 +55,7 @@ class _IPTVPlayerState extends State<IPTVPlayer> {
     if (widget.dvbi != null) {
       dvbi = widget.dvbi!;
     } else {
+      // TODO: Catch failed to connect error
       dvbi = await DVBI.create(endpointUrl: widget.endpoint!);
     }
     serviceElems =
@@ -65,6 +68,7 @@ class _IPTVPlayerState extends State<IPTVPlayer> {
   }
 
   Future<void> initializePlayer() async {
+    logger.d("Init video num $currPlayIndex");
     _videoPlayerController1 = VideoPlayerController.network(
         serviceElems[currPlayIndex].dashmpd.toString());
     _videoPlayerController2 = VideoPlayerController.network(
@@ -75,7 +79,7 @@ class _IPTVPlayerState extends State<IPTVPlayer> {
         _videoPlayerController2.initialize()
       ]);
     } catch (e) {
-      _chewieController.success!.dispose();
+      if (_chewieController.isSuccess) _chewieController.success?.dispose();
       _chewieController = Failure(e.toString());
       setState(() {});
       return;
@@ -89,13 +93,32 @@ class _IPTVPlayerState extends State<IPTVPlayer> {
         children: [Expanded(child: SingleChildScrollView(child: Text(error)))]);
   }
 
+  Widget videoInfoWidget() {
+    return Align(
+        alignment: Alignment.topCenter,
+        child: FractionallySizedBox(
+          widthFactor: 1.0,
+          heightFactor: 0.2,
+          child: Container(
+            color: Colors.lightBlue,
+            child: Center(child: Text(currPlayIndex.toString())),
+          ),
+        ));
+  }
+
   void _createChewieController() {
     final chewieController = ChewieController(
       videoPlayerController: _videoPlayerController1,
       autoPlay: true,
       looping: true,
       isLive: true,
-      customControls: const MyMaterialControls(showPlayButton: true),
+      allowFullScreen: false,
+      overlay: videoInfoWidget(),
+      customControls: MyMaterialControls(
+        showPlayButton: true,
+        nextSrc: nextChannel,
+        prevSrc: prevChannel,
+      ),
       fullScreenByDefault: false,
       errorBuilder: videoPlaybackError,
       additionalOptions: (context) {
@@ -133,8 +156,6 @@ class _IPTVPlayerState extends State<IPTVPlayer> {
     _chewieController = Success(chewieController);
   }
 
-  int currPlayIndex = 0;
-
   Future<void> nextChannel() async {
     await _videoPlayerController1.pause();
     currPlayIndex += 1;
@@ -166,7 +187,6 @@ class _IPTVPlayerState extends State<IPTVPlayer> {
               children: const [
                 CircularProgressIndicator(),
                 SizedBox(height: 20),
-                Text('Loading'),
               ],
             );
     } else {
