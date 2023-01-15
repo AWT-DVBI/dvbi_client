@@ -116,26 +116,6 @@ class ProgramInfo {
       };
 }
 
-class ProgramScheduleInfoTimestamp {
-  //anfrage über bestimmten zeit radius
-
-  //TODO sort by program starttime
-  List<Program> programs = [];
-
-  ProgramScheduleInfoTimestamp({required this.programs});
-
-  factory ProgramScheduleInfoTimestamp.parse({required XmlDocument data}) {
-    List<Program> programs = [];
-
-    for (int i = 0;
-        i < data.findAllElements("ProgramInformation").length;
-        i++) {
-      programs.add(Program.parseTimestamps(timestampData: data));
-    }
-    return ProgramScheduleInfoTimestamp(programs: programs);
-  }
-}
-
 /**
  * for now_next = true programinfo xml-parser
  * more info see dvbi docs - 6.5.3 Now/Next Filtered Schedule Request
@@ -296,6 +276,63 @@ class Program {
         'startTime': startTime,
         'programDuration': programDuration
       };
+}
+
+/**
+* for start, end time unix
+ * more info see dvbi docs - 6 timestamp unix
+ * <service_id> -> from serviceList UniqueIdentifier or the ContentGuideServiceRef where CGS precendence over Uid
+  
+ */
+class ProgramScheduleInfoTimestamp {
+  //anfrage über bestimmten zeit radius
+  //bsp 3 uhr und 21 uhr -> muss immer 6 h unterschied und andere condis in get xml einbauen
+
+  //TODO sort by program starttime
+  List<Program> programs = [];
+
+  ProgramScheduleInfoTimestamp({required this.programs});
+
+  factory ProgramScheduleInfoTimestamp.parse({required XmlDocument document}) {
+    List<Program> programs = [];
+
+    Iterable<Program> plist = document
+        .findAllElements("ProgramInformation")
+        .map((e) => Program(
+            pid: e.getAttribute("programId")!,
+            title: e
+                .getElement("BasicDescription")!
+                .getElement("Title")!
+                .innerText,
+            synopsis: e
+                .getElement("BasicDescription")!
+                .getElement("Synopsis")!
+                .innerText,
+            mediaUrl: e
+                .getElement("BasicDescription")!
+                .getElement("RelatedMaterial")
+                ?.getElement("MediaLocator")
+                ?.getElement("MediaUri")
+                ?.innerText,
+            startTime: document
+                .findAllElements("ScheduleEvent")
+                .firstWhere((element) =>
+                    element.getElement("Program")!.getAttribute("crid")! ==
+                    e.getAttribute("programId")!)
+                .getElement("PublishedStartTime")!
+                .innerText,
+            programDuration: document
+                .findAllElements("ScheduleEvent")
+                .firstWhere((element) =>
+                    element.getElement("Program")!.getAttribute("crid")! ==
+                    e.getAttribute("programId")!)
+                .getElement("PublishedDuration")!
+                .innerText));
+
+    programs = plist.toList();
+
+    return ProgramScheduleInfoTimestamp(programs: programs);
+  }
 }
 
 class ContentGuideSourceElem {
