@@ -20,11 +20,9 @@ class ServiceElem {
   final Uri? dashmpd;
   final Uri? logo;
   final http.Client httpClient;
-  ProgramInfo? _programInfo;
   ScheduleInfo? _scheduleInfo;
 
-  /// req for programscheduleInfo
-  Future<ScheduleInfo?> get scheduleInfo async {
+  Future<ScheduleInfo?> scheduleInfo({int? days}) async {
     if (_scheduleInfo == null &&
         contentGuideSourceElem?.scheduleInfoEndpoint != null) {
       Uri endpoint = contentGuideSourceElem!.scheduleInfoEndpoint;
@@ -34,14 +32,14 @@ class ServiceElem {
       // Get unixtime of today at 0 o'clock
       final startTime = DateTime(n.year, n.month, n.day);
 
-      final endUnixtime = startTime.add(const Duration(days: 7));
+      final endUnixtime = startTime.add(Duration(days: days ?? 1));
 
       endpoint = endpoint.replace(queryParameters: {
         "sid": contentGuideServiceRef ?? uniqueIdentifier,
         "start_unixtime": startTime.millisecondsSinceEpoch.toString(),
         "end_unixtime": endUnixtime.microsecondsSinceEpoch.toString()
       });
-      //_log.fine("scheduleInfo http request: $endpoint");
+
       var res = await http.get(endpoint);
       _log.fine("scheduleInfo http request: ${res.request}");
 
@@ -56,26 +54,6 @@ class ServiceElem {
     }
 
     return _scheduleInfo;
-  }
-
-  //TODO: Return result type
-  Future<ProgramInfo> get programInfo async {
-    if (_programInfo == null) {
-      Uri endpoint = contentGuideSourceElem!.programInfoEndpoint!;
-      //endpoint.replace(queryParameters: {"pid": width});
-      var res = await http.get(endpoint);
-      _log.fine("programInfo http request: ${res.request}");
-      if (res.statusCode != 200) {
-        throw DVBIException(
-            "Status code invalid. Code: ${res.statusCode} Reason: ${res.reasonPhrase}");
-      }
-      String xmlData = res.body;
-      var data = XmlDocument.parse(xmlData);
-
-      _programInfo = ProgramInfo.parse(data: data);
-    }
-
-    return _programInfo!;
   }
 
   ServiceElem(

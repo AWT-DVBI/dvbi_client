@@ -1,86 +1,103 @@
+import 'dart:developer';
+
 import 'package:xml/xml.dart';
+import 'related_material.dart';
+import 'package:logging/logging.dart';
+
+final Logger _log = Logger("program_info");
+
+enum Genre { contentCS, formatCS, contentSubject }
 
 class ProgramInfo {
+  static const Map<String?, Genre> genreMap = {
+    "urn:tva:metadata:cs:ContentCS:2011": Genre.contentCS,
+    "urn:dvb:metadata:cs:ContentSubject:2019": Genre.contentSubject,
+    "urn:tva:metadata:cs:FormatCS:2011": Genre.formatCS
+  };
+
   String programId;
   String mainTitle;
-  String secTitle;
-
+  String? secondaryTitle;
   String synopsisMedium;
-  String synopsisLong;
-  String genre;
-  String imageUrl;
+  String? synopsisShort;
+
+  Genre? genre;
+  Uri? imageUrl;
 
   ProgramInfo(
       {required this.programId,
       required this.mainTitle,
-      required this.secTitle,
+      required this.secondaryTitle,
       required this.synopsisMedium,
-      required this.synopsisLong,
+      required this.synopsisShort,
       required this.genre,
       required this.imageUrl});
 
-  factory ProgramInfo.parse({required XmlDocument data}) {
-    String programId = data
-        .getElement("TVAMain")!
-        .getElement("ProgramDescription")!
-        .getElement("ProgramInformationTable")!
-        .getElement("ProgramInformation")!
-        .getAttribute("programId")!;
+  factory ProgramInfo.parse({required XmlElement data}) {
+    String programId = data.getAttribute("programId")!;
 
-    Iterable<XmlElement> titles = data
-        .getElement("TVAMain")!
-        .getElement("ProgramDescription")!
-        .getElement("ProgramInformationTable")!
-        .getElement("ProgramInformation")!
-        .getElement("BasicDescription")!
-        .findElements("Title");
+    String mainTitle;
+    String? secondaryTitle;
+    {
+      List<XmlElement> titles =
+          data.getElement("BasicDescription")!.findElements("Title").toList();
 
-    String mainTitle = titles.first.innerText;
-
-    String secTitle = titles.last.innerText;
-
-    Iterable<XmlElement> synposisis = data
-        .getElement("TVAMain")!
-        .getElement("ProgramDescription")!
-        .getElement("ProgramInformationTable")!
-        .getElement("ProgramInformation")!
-        .getElement("BasicDescription")!
-        .findElements("Synopsis");
-
-    String synposisMedium = synposisis.first.innerText;
-
-    //TODO is optional S.115
-    String sysnopsisLong = synposisis.last.innerText;
-
-    //TODO genre is optional -> check
-    String genre = "";
-    if (data.findAllElements("Genre").isNotEmpty) {
-      genre = data
-          .getElement("TVAMain")!
-          .getElement("ProgramDescription")!
-          .getElement("ProgramInformationTable")!
-          .getElement("ProgramInformation")!
-          .getElement("BasicDescription")!
-          .getElement("Genre")!
-          .getAttribute("href")!;
+      mainTitle = titles[0].innerText;
+      if (titles.length > 1) {
+        secondaryTitle = titles[1].innerText;
+      }
     }
-    String imageUrl = data
-        .getElement("TVAMain")!
-        .getElement("ProgramDescription")!
-        .getElement("ProgramInformationTable")!
-        .getElement("ProgramInformation")!
+
+    String? synopsisShort;
+    String synopsisMedium;
+    {
+      List<XmlElement> synopsis = data
+          .getElement("BasicDescription")!
+          .findElements("Synopsis")
+          .toList();
+
+      synopsisMedium = synopsis
+          .firstWhere((element) => element.getAttribute("length") == "medium")
+          .innerText;
+
+      if (synopsis.length > 1) {
+        secondaryTitle = synopsisMedium = synopsis
+            .firstWhere((element) => element.getAttribute("length") == "short")
+            .innerText;
+      }
+    }
+
+    String? genreStr = data
         .getElement("BasicDescription")!
-        .getElement("RelatedMaterial")!
-        .getElement("MediaLocator")!
-        .getElement("MediaUri")!
-        .innerText;
+        .getElement("Genre")
+        ?.getAttribute("href");
+    Genre? genre;
+
+    if (genreStr != null) {
+      for (final g in genreMap.keys) {
+        if (genreStr.startsWith(g!)) {
+          genre = genreMap[g];
+        }
+      }
+    }
+
+    Uri? imageUrl;
+    {
+      XmlElement? relatedMaterialElem =
+          data.getElement("BasicDescription")!.getElement("RelatedMaterial");
+
+      if (relatedMaterialElem != null) {
+        final howRelated = RelatedMaterialElem.parse(data: relatedMaterialElem);
+        imageUrl = howRelated.getLogo();
+      }
+    }
 
     return ProgramInfo(
         programId: programId,
         mainTitle: mainTitle,
-        secTitle: secTitle,
-        synopsisLong: sysnopsisLong,
-        synopsisMedium: synposisMedium,
+        secondaryTitle: secondaryTitle,
+        synopsisShort: synopsisShort,
+        synopsisMedium: synopsisMedium,
         genre: genre,
         imageUrl: imageUrl);
   }
@@ -88,60 +105,39 @@ class ProgramInfo {
   Map<String, dynamic> toJson() => {
         'programId': programId,
         'mainTitle': mainTitle,
-        'secTitle': secTitle,
-        'synopsisLong': synopsisLong,
+        'secondaryTitle': secondaryTitle,
+        'synopsisShort': synopsisShort,
         'synopsisMedium': synopsisMedium,
-        'genre': genre,
-        'imageUrl': imageUrl
+        'genre': genre?.toString(),
+        'imageUrl': imageUrl?.toString()
       };
 }
 
 class ScheduleInfo {
-  final XmlDocument data;
+  final List<ProgramInfo> programInfoTable;
 
-  ScheduleInfo({required this.data});
+  ScheduleInfo({required this.programInfoTable});
 
   factory ScheduleInfo.parse({required XmlDocument data}) {
-    return ScheduleInfo(data: data);
+    // Parse ProgramInformation Table
+    List<ProgramInfo> programInfoTable = [];
+    {
+      final programInfoData = data
+          .getElement("TVAMain")!
+          .getElement("ProgramDescription")!
+          .getElement("ProgramInformationTable")!
+          .findAllElements("ProgramInformation");
+
+      for (final pi in programInfoData) {
+        ProgramInfo info = ProgramInfo.parse(data: pi);
+        programInfoTable.add(info);
+      }
+    }
+
+    return ScheduleInfo(programInfoTable: programInfoTable);
   }
 
-  Map<String, dynamic> toJson() => {};
-}
-
-class ScheduleInfoNowNext {
-  Program current; //member of now
-  Program next; //member 0f next
-
-  ScheduleInfoNowNext({required this.current, required this.next});
-
-  factory ScheduleInfoNowNext.parse({required XmlDocument data}) {
-    //TODO check if now & next are present-> if first and last can be same
-
-    Iterable<XmlElement> programArr = data
-        .getElement("TVAMain")!
-        .getElement("ProgramDescription")!
-        .getElement("ProgramInformationTable")!
-        .childElements; //ProgramInformation
-
-    XmlElement dataProgCurrent = programArr.first;
-    XmlElement dataProgNext = programArr.last;
-
-    Iterable<XmlElement> scheduleArr = data
-        .getElement("TVAMain")!
-        .getElement("ProgramDescription")!
-        .getElement("ProgramLocationTable")!
-        .getElement("Schedule")!
-        .childElements; //ScheduleEvent
-
-    XmlElement dataScheduleCurrent = scheduleArr.first;
-    XmlElement dataScheduleNext = scheduleArr.last;
-
-    Program current = Program.parse(
-        dataProg: dataProgCurrent, dataSchedule: dataScheduleCurrent);
-    Program next =
-        Program.parse(dataProg: dataProgNext, dataSchedule: dataScheduleNext);
-    return ScheduleInfoNowNext(current: current, next: next);
-  }
+  Map<String, dynamic> toJson() => {"programInfoTable": programInfoTable};
 }
 
 // prgramminfo

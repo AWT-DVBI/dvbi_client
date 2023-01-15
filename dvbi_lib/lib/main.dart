@@ -42,7 +42,7 @@ Future<void> main(List<String> args) async {
   //   serviceList.add(service);
   // }
 
-  await Future.wait(serviceList.map((e) => e.scheduleInfo));
+  await Future.wait(serviceList.map((e) => e.scheduleInfo()));
 
   JsonEncoder encoder = const JsonEncoder.withIndent('  ');
   String prettyprint = encoder.convert(serviceList);
