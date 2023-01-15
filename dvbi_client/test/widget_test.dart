@@ -5,7 +5,7 @@
 // gestures. You can also use WidgetTester to find child widgets in the widget
 // tree, read text, and verify that the values of widget properties are correct.
 
-import 'package:dvbi_lib/dvbi_lib.dart';
+import 'package:dvbi_lib/dvbi.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:dvbi_client/app/app.dart';
 import 'package:flutter/services.dart' show rootBundle;

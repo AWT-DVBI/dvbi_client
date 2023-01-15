@@ -1,7 +1,7 @@
 // ignore_for_file: unused_import
 
 import 'package:flutter/material.dart';
-import 'package:dvbi_lib/dvbi_lib.dart';
+import 'package:dvbi_lib/dvbi.dart';
 import 'dart:developer' as dev;
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:logger/logger.dart';

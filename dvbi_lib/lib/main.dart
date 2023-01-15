@@ -3,7 +3,7 @@
 import 'dart:convert';
 import 'package:args/args.dart';
 import 'package:args/command_runner.dart';
-import 'package:dvbi_lib/dvbi_lib.dart';
+import 'package:dvbi_lib/dvbi.dart';
 import 'dart:io';
 import 'package:logging/logging.dart';
 
