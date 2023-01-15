@@ -47,67 +47,6 @@ class DVBI {
     httpClient.close();
   }
 
-  /// req for programscheduleInfo
-  Stream<ProgramScheduleInfoNowNext> programScheduleInfoNowNext(
-      Uri endpointUrl, String scheduleInfoEndpoint, String sid) async* {
-    final String xmlData;
-
-    if (Uri.parse(scheduleInfoEndpoint).isScheme("HTTP") ||
-        Uri.parse(scheduleInfoEndpoint).isScheme("HTTPS")) {
-      // String endpoint =scheduleInfoEndpoint + '?' + sid + '&' + 'now_next=true';
-      String endpoint = '$scheduleInfoEndpoint?sid=$sid&now_next=true';
-
-      var res = await http.get(Uri.parse(endpoint));
-
-      if (res.statusCode != 200) {
-        throw DVBIException(
-            "Status code invalid. Code: ${res.statusCode} Reason: ${res.reasonPhrase}");
-      }
-      xmlData = res.body;
-    } else {
-      print("in else?");
-      var res = File.fromUri(endpointUrl);
-
-      xmlData = await res.readAsString();
-    }
-
-    final scheduleData = XmlDocument.parse(xmlData);
-
-    //return as stream
-    yield ProgramScheduleInfoNowNext.parse(data: scheduleData);
-  }
-
-  //delete proginfoxml because http request will be in future methode
-  Stream<ProgramInfo> getProgramInfo(Uri endpointUrl, endpointpi, pid) async* {
-    //
-
-    final String xmlData;
-
-    if (Uri.parse(endpointpi).isScheme("HTTP") ||
-        Uri.parse(endpointpi).isScheme("HTTPS")) {
-      // String endpoint =scheduleInfoEndpoint + '?' + sid + '&' + 'now_next=true';
-      String endpoint = '$endpointpi?pid=$pid';
-
-      var res = await http.get(Uri.parse(endpoint));
-
-      if (res.statusCode != 200) {
-        throw DVBIException(
-            "Status code invalid. Code: ${res.statusCode} Reason: ${res.reasonPhrase}");
-      }
-      xmlData = res.body;
-    } else {
-      print("in else?");
-      var res = File.fromUri(endpointUrl);
-
-      xmlData = await res.readAsString();
-    }
-
-    final programInfo = XmlDocument.parse(xmlData);
-
-    //return as stream
-    yield ProgramInfo.parse(data: programInfo);
-  }
-
   List<ServiceElem> get serviceElems {
     final serviceList = XmlDocument.parse(data).getElement("ServiceList")!;
     final services = serviceList.findAllElements("Service");
@@ -117,7 +56,9 @@ class DVBI {
         .toList();
     return services
         .map((serviceData) => ServiceElem.parse(
-            data: serviceData, contentGuideSourceList: contentGuideSourceList))
+            httpClient: httpClient,
+            data: serviceData,
+            contentGuideSourceList: contentGuideSourceList))
         .toList();
   }
 
@@ -132,7 +73,9 @@ class DVBI {
 
     for (var serviceData in services) {
       yield ServiceElem.parse(
-          contentGuideSourceList: contentGuideSourceList, data: serviceData);
+          httpClient: httpClient,
+          contentGuideSourceList: contentGuideSourceList,
+          data: serviceData);
     }
   }
 }

@@ -4,7 +4,7 @@ import 'package:xml/xml.dart';
 class ContentGuideSourceElem {
   final Uri scheduleInfoEndpoint;
   final Uri? programInfoEndpoint;
-  ProgramScheduleInfoNowNext? programinfo;
+  ScheduleInfoNowNext? programinfo;
   final String providerName;
   final String cgsid;
 

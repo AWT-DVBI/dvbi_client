@@ -7,11 +7,14 @@ import 'package:dvbi_lib/dvbi.dart';
 import 'dart:io';
 import 'package:logging/logging.dart';
 
+final Logger log = Logger("main");
+
 Future<void> main(List<String> args) async {
   Logger.root.level = Level.INFO;
 
   CommandRunner runner = CommandRunner('dvbip', "A DVB-I to JSON converter");
   runner.argParser.addOption("endpoint", abbr: "e");
+  //runner.argParser.addFlag("scheduleInfo", abbr: "si");
   runner.argParser.addFlag("verbose", abbr: "v");
   ArgResults argResults = runner.parse(args);
 
@@ -31,12 +34,17 @@ Future<void> main(List<String> args) async {
   Uri endpoint = Uri.parse(argResults["endpoint"]);
 
   final dvbi = await DVBI.create(endpointUrl: endpoint);
-  var services = dvbi.stream;
+  var serviceList = dvbi.serviceElems;
+
+  // await for (final service in dvbi.stream) {
+  //   log.fine("Init ${service.serviceName}");
+  //   await service.scheduleInfoAsync;
+  //   serviceList.add(service);
+  // }
+
+  await Future.wait(serviceList.map((e) => e.scheduleInfo));
 
   JsonEncoder encoder = const JsonEncoder.withIndent('  ');
-
-  var serviceList = await services.toList();
-
   String prettyprint = encoder.convert(serviceList);
   print(prettyprint);
 }

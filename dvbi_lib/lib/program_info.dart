@@ -96,13 +96,25 @@ class ProgramInfo {
       };
 }
 
-class ProgramScheduleInfoNowNext {
+class ScheduleInfo {
+  final XmlDocument data;
+
+  ScheduleInfo({required this.data});
+
+  factory ScheduleInfo.parse({required XmlDocument data}) {
+    return ScheduleInfo(data: data);
+  }
+
+  Map<String, dynamic> toJson() => {};
+}
+
+class ScheduleInfoNowNext {
   Program current; //member of now
   Program next; //member 0f next
 
-  ProgramScheduleInfoNowNext({required this.current, required this.next});
+  ScheduleInfoNowNext({required this.current, required this.next});
 
-  factory ProgramScheduleInfoNowNext.parse({required XmlDocument data}) {
+  factory ScheduleInfoNowNext.parse({required XmlDocument data}) {
     //TODO check if now & next are present-> if first and last can be same
 
     Iterable<XmlElement> programArr = data
@@ -128,7 +140,7 @@ class ProgramScheduleInfoNowNext {
         dataProg: dataProgCurrent, dataSchedule: dataScheduleCurrent);
     Program next =
         Program.parse(dataProg: dataProgNext, dataSchedule: dataScheduleNext);
-    return ProgramScheduleInfoNowNext(current: current, next: next);
+    return ScheduleInfoNowNext(current: current, next: next);
   }
 }
 
