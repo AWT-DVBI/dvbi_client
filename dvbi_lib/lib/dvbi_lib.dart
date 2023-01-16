@@ -279,8 +279,8 @@ class Program {
 }
 
 /**
-* for start, end time unix
- * more info see dvbi docs - 6 timestamp unix
+* 
+ * schedule information between specified timestamps (multiples of 10 800 seconds) for a single service based on a Service ID. DVBI standard 6.0
  * <service_id> -> from serviceList UniqueIdentifier or the ContentGuideServiceRef where CGS precendence over Uid
   
  */
@@ -546,7 +546,60 @@ class ServiceElem {
   }
 
 /**
-   * req for programscheduleInfo
+   * Http request for programscheduleInfo_timestamp
+   * 
+   * start_unixtime:
+   * end_unixtime:
+   * <ScheduleInfoEndpoint>?start=<start_unixtime>&end=<end_unixtime> &sid=<service_id>
+   * for more info see dvbi standard 6
+   */
+  Stream<ProgramScheduleInfoTimestamp> programScheduleInfoTimestamp() async* {
+    final String xmlData;
+
+    if (contentGuideSourceElem != null) {
+      if (contentGuideSourceElem!.scheduleInfoEndpoint.isScheme("HTTP") ||
+          contentGuideSourceElem!.scheduleInfoEndpoint.isScheme("HTTPS")) {
+        // String endpoint =scheduleInfoEndpoint + '?' + sid + '&' + 'now_next=true';
+
+        String myScheduleInfoEndpoint =
+            contentGuideSourceElem!.scheduleInfoEndpoint.toString();
+
+        // contentGuideServiceRef has prevalance over uniqueID
+        String sid = (contentGuideServiceRef != null)
+            ? contentGuideServiceRef!
+            : uniqueIdentifier;
+
+        String endpoint = '$myScheduleInfoEndpoint?sid=$sid&now_next=true';
+
+        print(endpoint + " in" + "pSI function");
+
+        var res = await http.get(Uri.parse(endpoint));
+
+        if (res.statusCode != 200) {
+          throw DVBIException(
+              "Status code invalid. Code: ${res.statusCode} Reason: ${res.reasonPhrase}");
+        }
+        xmlData = res.body;
+      } else {
+        print("in else?");
+        var res = File.fromUri(contentGuideSourceElem!.scheduleInfoEndpoint);
+
+        xmlData = await res.readAsString();
+      }
+
+      final scheduleData = XmlDocument.parse(xmlData);
+
+      //return as stream
+      yield ProgramScheduleInfoTimestamp.parse(document: scheduleData);
+    } else {
+      print("contentGuideSourceElem is null -> no request can be made");
+    }
+  }
+
+/**
+   * request for programscheduleInfo_nownext
+   * <ScheduleInfoEndpoint>?sid=<service_id>&now_next=<true>
+   * for more info see dvbi standard 6.5.3.1
    */
   Stream<ProgramScheduleInfo_nownext> programScheduleInfoNowNext() async* {
     final String xmlData;
@@ -591,6 +644,11 @@ class ServiceElem {
     }
   }
 
+  /**
+   * request for detailed program information of a sepcific service
+   * ProgramInfoEndpoint provides detailed information on a single programme identified by programme identifier
+   * <ProgramInfoEndpoint>?pid=<program_id>
+   */
   Stream<ProgramInfo> getProgramInfo(pid) async* {
     //TODO is it possible that cgse is not null but piEndpoint?
     if (contentGuideSourceElem!.programInfoEndpoint != null) {
