@@ -148,6 +148,8 @@ class MyProgramInfo {
       {required XmlElement data, required XmlElement scheduleEvent}) {
     String programId = data.getAttribute("programId")!;
 
+    print("in my parse");
+
     String mainTitle;
     String? secondaryTitle;
     {
@@ -209,6 +211,8 @@ class MyProgramInfo {
 
     String publishedDuration =
         scheduleEvent.getElement("PublishedDuration")!.innerText;
+
+    print(publishedDuration);
 
     return MyProgramInfo(
         programId: programId,
@@ -276,12 +280,12 @@ class ScheduleInfo {
 */
 
 class MyScheduleInfo {
-  final List<ProgramInfo> programInfoTable;
+  final List<MyProgramInfo> programInfoTable;
 
   MyScheduleInfo({required this.programInfoTable});
 
   factory MyScheduleInfo.parse({required XmlDocument data}) {
-    List<ProgramInfo> programs = [];
+    List<MyProgramInfo> programs = [];
 
     final programInfoData = data
         .getElement("TVAMain")!
@@ -289,24 +293,26 @@ class MyScheduleInfo {
         .getElement("ProgramInformationTable")!
         .findAllElements("ProgramInformation");
 
-    if (programInfoData.isEmpty) {
+    final programScheduleData = data.findAllElements("ScheduleEvent");
+
+    if (programInfoData.isEmpty || programScheduleData.isEmpty) {
       print("progInfo is empty");
     } else {
-      /* Iterable<MyProgramInfo> plist = data
+      Iterable<MyProgramInfo> plist = data
           .findAllElements("ProgramInformation")
           .map((e) => MyProgramInfo.parse(
               data: e,
-              scheduleEvent: data.findAllElements("ScheduleEvent").firstWhere(
-                  (element) =>
-                      element.getElement("Program")!.getAttribute("crid")! ==
-                      e.getAttribute("programId")!)));
+              scheduleEvent: programScheduleData.firstWhere((element) =>
+                  element.getElement("Program")!.getAttribute("crid")! ==
+                  e.getAttribute("programId")!)));
 
-      programs = plist.toList();*/
-      Iterable<ProgramInfo> plist = data
+      programs = plist.toList();
+      /*Iterable<ProgramInfo> plist = data
           .findAllElements("ProgramInformation")
           .map((e) => ProgramInfo.parse(data: e));
 
       programs = plist.toList();
+      */
     }
 
     return MyScheduleInfo(programInfoTable: programs);
