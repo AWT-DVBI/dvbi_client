@@ -113,6 +113,126 @@ class ProgramInfo {
       };
 }
 
+class MyProgramInfo {
+  static const Map<String?, Genre> genreMap = {
+    "urn:tva:metadata:cs:ContentCS:2011": Genre.contentCS,
+    "urn:dvb:metadata:cs:ContentSubject:2019": Genre.contentSubject,
+    "urn:tva:metadata:cs:FormatCS:2011": Genre.formatCS
+  };
+
+  String programId;
+  String mainTitle;
+  String? secondaryTitle;
+  String synopsisMedium;
+  String? synopsisShort;
+
+  Genre? genre;
+  Uri? imageUrl;
+
+  //from 6.10.7 ScheduleEvent
+  String publishedStartTime;
+  String publishedDuration;
+
+  MyProgramInfo(
+      {required this.programId,
+      required this.mainTitle,
+      required this.secondaryTitle,
+      required this.synopsisMedium,
+      required this.synopsisShort,
+      required this.genre,
+      required this.imageUrl,
+      required this.publishedStartTime,
+      required this.publishedDuration});
+
+  factory MyProgramInfo.parse(
+      {required XmlElement data, required XmlElement scheduleEvent}) {
+    String programId = data.getAttribute("programId")!;
+
+    String mainTitle;
+    String? secondaryTitle;
+    {
+      List<XmlElement> titles =
+          data.getElement("BasicDescription")!.findElements("Title").toList();
+
+      mainTitle = titles[0].innerText;
+      if (titles.length > 1) {
+        secondaryTitle = titles[1].innerText;
+      }
+    }
+
+    String? synopsisShort;
+    String synopsisMedium;
+    {
+      List<XmlElement> synopsis = data
+          .getElement("BasicDescription")!
+          .findElements("Synopsis")
+          .toList();
+
+      synopsisMedium = synopsis
+          .firstWhere((element) => element.getAttribute("length") == "medium")
+          .innerText;
+
+      if (synopsis.length > 1) {
+        secondaryTitle = synopsisMedium = synopsis
+            .firstWhere((element) => element.getAttribute("length") == "short")
+            .innerText;
+      }
+    }
+
+    String? genreStr = data
+        .getElement("BasicDescription")!
+        .getElement("Genre")
+        ?.getAttribute("href");
+    Genre? genre;
+
+    if (genreStr != null) {
+      for (final g in genreMap.keys) {
+        if (genreStr.startsWith(g!)) {
+          genre = genreMap[g];
+        }
+      }
+    }
+
+    Uri? imageUrl;
+    {
+      XmlElement? relatedMaterialElem =
+          data.getElement("BasicDescription")!.getElement("RelatedMaterial");
+
+      if (relatedMaterialElem != null) {
+        final howRelated = RelatedMaterialElem.parse(data: relatedMaterialElem);
+        imageUrl = howRelated.getLogo();
+      }
+    }
+
+    String publishedStartTime =
+        scheduleEvent.getElement("PublishedStartTime")!.innerText;
+
+    String publishedDuration =
+        scheduleEvent.getElement("PublishedDuration")!.innerText;
+
+    return MyProgramInfo(
+        programId: programId,
+        mainTitle: mainTitle,
+        secondaryTitle: secondaryTitle,
+        synopsisShort: synopsisShort,
+        synopsisMedium: synopsisMedium,
+        genre: genre,
+        imageUrl: imageUrl,
+        publishedStartTime: publishedStartTime,
+        publishedDuration: publishedDuration);
+  }
+
+  Map<String, dynamic> toJson() => {
+        'programId': programId,
+        'mainTitle': mainTitle,
+        'secondaryTitle': secondaryTitle,
+        'synopsisShort': synopsisShort,
+        'synopsisMedium': synopsisMedium,
+        'genre': genre?.toString(),
+        'imageUrl': imageUrl?.toString()
+      };
+}
+
 class ScheduleInfo {
   final List<ProgramInfo> programInfoTable;
 
@@ -140,6 +260,32 @@ class ScheduleInfo {
   Map<String, dynamic> toJson() => {"programInfoTable": programInfoTable};
 }
 
+/*
+class MyScheduleInfo {
+  final List<MyProgramInfo> programInfoTable;
+
+  MyScheduleInfo({required this.programInfoTable});
+
+  factory MyScheduleInfo.parse({required XmlDocument data}) {
+    List<MyProgramInfo> programs = [];
+
+    Iterable<MyProgramInfo> plist = data
+        .findAllElements("ProgramInformation")
+        .map((e) => MyProgramInfo.parse(
+            data: e,
+            scheduleEvent: data.findAllElements("ScheduleEvent").firstWhere(
+                (element) =>
+                    element.getElement("Program")!.getAttribute("crid")! ==
+                    e.getAttribute("programId")!)));
+
+    programs = plist.toList();
+
+    return MyScheduleInfo(programInfoTable: programs);
+  }
+
+  Map<String, dynamic> toJson() => {"programInfoTable": programInfoTable};
+}
+*/
 // prgramminfo
 class Program {
   //ProgramInformation programId i.e.="crid://zdf.de/metadata/broadcast_item/83791/"
