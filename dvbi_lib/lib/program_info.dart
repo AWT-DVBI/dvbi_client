@@ -232,7 +232,7 @@ class MyProgramInfo {
         'imageUrl': imageUrl?.toString()
       };
 }
-
+/*
 class ScheduleInfo {
   final List<ProgramInfo> programInfoTable;
 
@@ -254,38 +254,67 @@ class ScheduleInfo {
       }
     }
 
+/*debugg 
+    if (data.findAllElements("ProgramInformationTable").isEmpty) {
+      print("No ProgramInformationTable event");
+    }
+*/
+
+    if (data.findAllElements("ProgramInformation").isEmpty) {
+      print("No ProgramInformation event");
+    }
+
+    if (data.findAllElements("Schedule").isEmpty) {
+      print("No Schedule");
+    }
+
     return ScheduleInfo(programInfoTable: programInfoTable);
   }
 
   Map<String, dynamic> toJson() => {"programInfoTable": programInfoTable};
 }
+*/
 
-/*
 class MyScheduleInfo {
-  final List<MyProgramInfo> programInfoTable;
+  final List<ProgramInfo> programInfoTable;
 
   MyScheduleInfo({required this.programInfoTable});
 
   factory MyScheduleInfo.parse({required XmlDocument data}) {
-    List<MyProgramInfo> programs = [];
+    List<ProgramInfo> programs = [];
 
-    Iterable<MyProgramInfo> plist = data
-        .findAllElements("ProgramInformation")
-        .map((e) => MyProgramInfo.parse(
-            data: e,
-            scheduleEvent: data.findAllElements("ScheduleEvent").firstWhere(
-                (element) =>
-                    element.getElement("Program")!.getAttribute("crid")! ==
-                    e.getAttribute("programId")!)));
+    final programInfoData = data
+        .getElement("TVAMain")!
+        .getElement("ProgramDescription")!
+        .getElement("ProgramInformationTable")!
+        .findAllElements("ProgramInformation");
 
-    programs = plist.toList();
+    if (programInfoData.isEmpty) {
+      print("progInfo is empty");
+    } else {
+      /* Iterable<MyProgramInfo> plist = data
+          .findAllElements("ProgramInformation")
+          .map((e) => MyProgramInfo.parse(
+              data: e,
+              scheduleEvent: data.findAllElements("ScheduleEvent").firstWhere(
+                  (element) =>
+                      element.getElement("Program")!.getAttribute("crid")! ==
+                      e.getAttribute("programId")!)));
+
+      programs = plist.toList();*/
+      Iterable<ProgramInfo> plist = data
+          .findAllElements("ProgramInformation")
+          .map((e) => ProgramInfo.parse(data: e));
+
+      programs = plist.toList();
+    }
 
     return MyScheduleInfo(programInfoTable: programs);
   }
 
   Map<String, dynamic> toJson() => {"programInfoTable": programInfoTable};
 }
-*/
+
 // prgramminfo
 class Program {
   //ProgramInformation programId i.e.="crid://zdf.de/metadata/broadcast_item/83791/"

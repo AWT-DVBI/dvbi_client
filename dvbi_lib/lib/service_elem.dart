@@ -20,9 +20,9 @@ class ServiceElem {
   final Uri? dashmpd;
   final Uri? logo;
   final http.Client httpClient;
-  ScheduleInfo? _scheduleInfo;
+  MyScheduleInfo? _scheduleInfo;
 
-  Future<ScheduleInfo?> scheduleInfo({int? days}) async {
+  Future<MyScheduleInfo?> scheduleInfo({int? days}) async {
     if (_scheduleInfo == null &&
         contentGuideSourceElem?.scheduleInfoEndpoint != null) {
       Uri endpoint = contentGuideSourceElem!.scheduleInfoEndpoint;
@@ -50,7 +50,7 @@ class ServiceElem {
       String xmlData = res.body;
       var data = XmlDocument.parse(xmlData);
 
-      _scheduleInfo = ScheduleInfo.parse(data: data);
+      _scheduleInfo = MyScheduleInfo.parse(data: data);
     }
 
     return _scheduleInfo;
