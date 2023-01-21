@@ -32,7 +32,7 @@ class IPTVPlayer extends StatefulWidget {
 class _IPTVPlayerState extends State<IPTVPlayer> {
   late VideoPlayerController _videoPlayerController1;
   ChewieController? _chewieController;
-  late VideoPlayerValue _latestValue;
+
   int? bufferDelay;
   late DVBI dvbi;
   late List<ServiceElem> serviceElems;
@@ -73,13 +73,14 @@ class _IPTVPlayerState extends State<IPTVPlayer> {
     logger.d("Init video num $currPlayIndex");
     _videoPlayerController1 = VideoPlayerController.network(
         serviceElems[currPlayIndex].dashmpd.toString());
-    try {
-      await _videoPlayerController1.initialize();
-    } catch (e) {
-      logger.e("Error initializing videoPlayer");
-      setState(() {});
-      return;
-    }
+    await _videoPlayerController1.initialize();
+    // try {
+    //   await _videoPlayerController1.initialize();
+    // } catch (err, trace) {
+    //   logger.e("Error initializing videoPlayer", err, trace);
+    //   setState(() {});
+    //   return;
+    // }
     _createChewieController();
     setState(() {});
   }
@@ -153,7 +154,7 @@ class _IPTVPlayerState extends State<IPTVPlayer> {
   }
 
   Future<void> nextChannel() async {
-    await _videoPlayerController1.pause();
+    await _videoPlayerController1.dispose();
     currPlayIndex += 1;
     if (currPlayIndex >= serviceElems.length) {
       currPlayIndex = 0;

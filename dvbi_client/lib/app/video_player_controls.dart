@@ -356,7 +356,7 @@ class _MyMaterialControlsState extends State<MyMaterialControls>
         opacity: notifier.hideStuff ? 0.0 : 1.0,
         duration: const Duration(milliseconds: 300),
         child: SizedBox(
-          height: barHeight,
+          height: 30,
           child: IconButton(
               padding: EdgeInsets.zero,
               onPressed: onTap,
