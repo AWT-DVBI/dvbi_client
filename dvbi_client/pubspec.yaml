@@ -36,7 +36,8 @@ dependencies:
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
-  chewie: ^1.3.6
+  chewie:
+    path: ../chewie
   logger: ^1.1.0
   result_type: ^0.2.0
 

@@ -31,8 +31,8 @@ class IPTVPlayer extends StatefulWidget {
 
 class _IPTVPlayerState extends State<IPTVPlayer> {
   late VideoPlayerController _videoPlayerController1;
-  late VideoPlayerController _videoPlayerController2;
-  Result<ChewieController?, String> _chewieController = Success(null);
+  ChewieController? _chewieController;
+  late VideoPlayerValue _latestValue;
   int? bufferDelay;
   late DVBI dvbi;
   late List<ServiceElem> serviceElems;
@@ -47,8 +47,8 @@ class _IPTVPlayerState extends State<IPTVPlayer> {
   @override
   void dispose() {
     _videoPlayerController1.dispose();
-    _videoPlayerController2.dispose();
-    _chewieController.success?.dispose();
+
+    _chewieController?.dispose();
     super.dispose();
   }
 
@@ -59,6 +59,7 @@ class _IPTVPlayerState extends State<IPTVPlayer> {
       // TODO: Catch failed to connect error
       dvbi = await DVBI.create(endpointUrl: widget.endpoint!);
     }
+
     serviceElems =
         dvbi.serviceElems.where((element) => element.dashmpd != null).toList();
   }
@@ -72,16 +73,10 @@ class _IPTVPlayerState extends State<IPTVPlayer> {
     logger.d("Init video num $currPlayIndex");
     _videoPlayerController1 = VideoPlayerController.network(
         serviceElems[currPlayIndex].dashmpd.toString());
-    _videoPlayerController2 = VideoPlayerController.network(
-        serviceElems[currPlayIndex].dashmpd.toString());
     try {
-      await Future.wait([
-        _videoPlayerController1.initialize(),
-        _videoPlayerController2.initialize()
-      ]);
+      await _videoPlayerController1.initialize();
     } catch (e) {
-      if (_chewieController.isSuccess) _chewieController.success?.dispose();
-      _chewieController = Failure(e.toString());
+      logger.e("Error initializing videoPlayer");
       setState(() {});
       return;
     }
@@ -113,14 +108,14 @@ class _IPTVPlayerState extends State<IPTVPlayer> {
       autoPlay: true,
       looping: true,
       isLive: true,
-      allowFullScreen: false,
+      allowFullScreen: true,
       overlay: videoInfoWidget(),
       customControls: MyMaterialControls(
         showPlayButton: true,
         nextSrc: nextChannel,
         prevSrc: prevChannel,
       ),
-      fullScreenByDefault: false,
+      fullScreenByDefault: true,
       errorBuilder: videoPlaybackError,
       additionalOptions: (context) {
         return <OptionItem>[
@@ -137,7 +132,7 @@ class _IPTVPlayerState extends State<IPTVPlayer> {
         ];
       },
 
-      hideControlsTimer: const Duration(seconds: 3),
+      hideControlsTimer: const Duration(seconds: 1),
 
       // Try playing around with some of these other options:
 
@@ -154,7 +149,7 @@ class _IPTVPlayerState extends State<IPTVPlayer> {
       // autoInitialize: true,
     );
 
-    _chewieController = Success(chewieController);
+    _chewieController = chewieController;
   }
 
   Future<void> nextChannel() async {
@@ -176,23 +171,19 @@ class _IPTVPlayerState extends State<IPTVPlayer> {
   }
 
   Widget buildVideoPlayer() {
-    if (_chewieController.isSuccess) {
-      final chewieController = _chewieController.success;
-      return chewieController != null &&
-              chewieController.videoPlayerController.value.isInitialized
-          ? Chewie(
-              controller: chewieController,
-            )
-          : Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: const [
-                CircularProgressIndicator(),
-                SizedBox(height: 20),
-              ],
-            );
-    } else {
-      return videoPlaybackError(context, _chewieController.failure);
-    }
+    final chewieController = _chewieController;
+    return chewieController != null &&
+            chewieController.videoPlayerController.value.isInitialized
+        ? Chewie(
+            controller: chewieController,
+          )
+        : Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: const [
+              CircularProgressIndicator(),
+              SizedBox(height: 20),
+            ],
+          );
   }
 
   @override
