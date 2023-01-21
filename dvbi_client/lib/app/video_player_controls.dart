@@ -139,7 +139,7 @@ class _MyMaterialControlsState extends State<MyMaterialControls>
                     )
                   else
                     _buildVideoControls(),
-                  _buildActionBar(),
+                  _buildActionBar(context),
                   Column(
                     mainAxisAlignment: MainAxisAlignment.end,
                     children: <Widget>[
@@ -189,7 +189,7 @@ class _MyMaterialControlsState extends State<MyMaterialControls>
     super.didChangeDependencies();
   }
 
-  Widget _buildActionBar() {
+  Widget _buildActionBarOld() {
     return Positioned(
       top: 0,
       right: 0,
@@ -201,6 +201,43 @@ class _MyMaterialControlsState extends State<MyMaterialControls>
             children: [
               _buildSubtitleToggle(),
               if (chewieController.showOptions) _buildOptionsButton(),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  AnimatedOpacity _buildActionBar(
+    BuildContext context,
+  ) {
+    final iconColor = Theme.of(context).textTheme.button!.color;
+
+    return AnimatedOpacity(
+      opacity: notifier.hideStuff ? 0.0 : 1.0,
+      duration: const Duration(milliseconds: 300),
+      child: Container(
+        height: barHeight + (chewieController.isFullScreen ? 10.0 : 0),
+        padding: EdgeInsets.only(
+          left: 20,
+          bottom: !chewieController.isFullScreen ? 10.0 : 0,
+        ),
+        child: SafeArea(
+          bottom: chewieController.isFullScreen,
+          minimum: chewieController.controlsSafeAreaMinimum,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Flexible(
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    _buildSubtitleToggle(),
+                    if (chewieController.showOptions) _buildOptionsButton(),
+                  ],
+                ),
+              ),
             ],
           ),
         ),
@@ -230,6 +267,7 @@ class _MyMaterialControlsState extends State<MyMaterialControls>
       opacity: notifier.hideStuff ? 0.0 : 1.0,
       duration: const Duration(milliseconds: 250),
       child: IconButton(
+        iconSize: 30,
         onPressed: () async {
           _hideTimer?.cancel();
 
@@ -355,17 +393,14 @@ class _MyMaterialControlsState extends State<MyMaterialControls>
       child: AnimatedOpacity(
         opacity: notifier.hideStuff ? 0.0 : 1.0,
         duration: const Duration(milliseconds: 300),
-        child: SizedBox(
-          height: 30,
-          child: IconButton(
-              padding: EdgeInsets.zero,
-              onPressed: onTap,
-              iconSize: 30,
-              icon: Icon(
-                _latestValue.volume > 0 ? Icons.volume_up : Icons.volume_off,
-                color: Colors.white,
-              )),
-        ),
+        child: IconButton(
+            //padding: EdgeInsets.zero,
+            onPressed: onTap,
+            iconSize: 30,
+            icon: Icon(
+              _latestValue.volume > 0 ? Icons.volume_up : Icons.volume_off,
+              color: Colors.white,
+            )),
       ),
     );
   }

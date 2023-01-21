@@ -30,7 +30,7 @@ class IPTVPlayer extends StatefulWidget {
 }
 
 class _IPTVPlayerState extends State<IPTVPlayer> {
-  late VideoPlayerController _videoPlayerController1;
+  VideoPlayerController? _videoPlayerController1;
   ChewieController? _chewieController;
 
   int? bufferDelay;
@@ -46,7 +46,7 @@ class _IPTVPlayerState extends State<IPTVPlayer> {
 
   @override
   void dispose() {
-    _videoPlayerController1.dispose();
+    _videoPlayerController1?.dispose();
 
     _chewieController?.dispose();
     super.dispose();
@@ -71,16 +71,25 @@ class _IPTVPlayerState extends State<IPTVPlayer> {
 
   Future<void> initializePlayer() async {
     logger.d("Init video num $currPlayIndex");
-    _videoPlayerController1 = VideoPlayerController.network(
+    final newController = VideoPlayerController.network(
         serviceElems[currPlayIndex].dashmpd.toString());
-    await _videoPlayerController1.initialize();
-    // try {
-    //   await _videoPlayerController1.initialize();
-    // } catch (err, trace) {
-    //   logger.e("Error initializing videoPlayer", err, trace);
-    //   setState(() {});
-    //   return;
-    // }
+
+    if (_videoPlayerController1 != null) {
+      newController.setVolume(_videoPlayerController1!.value.volume);
+    }
+
+    _videoPlayerController1 = newController;
+
+    try {
+      await _videoPlayerController1!.initialize();
+    } catch (err, trace) {
+      logger.e("Error initializing videoPlayer", err, trace);
+
+      setState(() {
+        _videoPlayerController1!.value = _videoPlayerController1!.value
+            .copyWith(errorDescription: err.toString());
+      });
+    }
     _createChewieController();
     setState(() {});
   }
@@ -105,7 +114,7 @@ class _IPTVPlayerState extends State<IPTVPlayer> {
 
   void _createChewieController() {
     final chewieController = ChewieController(
-      videoPlayerController: _videoPlayerController1,
+      videoPlayerController: _videoPlayerController1!,
       autoPlay: true,
       looping: true,
       isLive: true,
@@ -118,20 +127,6 @@ class _IPTVPlayerState extends State<IPTVPlayer> {
       ),
       fullScreenByDefault: true,
       errorBuilder: videoPlaybackError,
-      additionalOptions: (context) {
-        return <OptionItem>[
-          OptionItem(
-            onTap: nextChannel,
-            iconData: Icons.live_tv_sharp,
-            title: 'Next Channel',
-          ),
-          OptionItem(
-            onTap: prevChannel,
-            iconData: Icons.live_tv_sharp,
-            title: 'Prev Channel',
-          ),
-        ];
-      },
 
       hideControlsTimer: const Duration(seconds: 1),
 
@@ -154,7 +149,7 @@ class _IPTVPlayerState extends State<IPTVPlayer> {
   }
 
   Future<void> nextChannel() async {
-    await _videoPlayerController1.dispose();
+    await _videoPlayerController1!.dispose();
     currPlayIndex += 1;
     if (currPlayIndex >= serviceElems.length) {
       currPlayIndex = 0;
@@ -163,7 +158,7 @@ class _IPTVPlayerState extends State<IPTVPlayer> {
   }
 
   Future<void> prevChannel() async {
-    await _videoPlayerController1.pause();
+    await _videoPlayerController1!.pause();
     currPlayIndex -= 1;
     if (currPlayIndex < 0) {
       currPlayIndex = serviceElems.length - 1;
