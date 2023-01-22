@@ -195,7 +195,7 @@
     },
     {
       "name": "video_player",
-      "rootUri": "file:///home/lhebendanz/.pub_cache/hosted/pub.dartlang.org/video_player-2.5.1",
+      "rootUri": "../../video_player",
       "packageUri": "lib/",
       "languageVersion": "2.14"
     },
@@ -213,7 +213,7 @@
     },
     {
       "name": "video_player_platform_interface",
-      "rootUri": "file:///home/lhebendanz/.pub_cache/hosted/pub.dartlang.org/video_player_platform_interface-6.0.1",
+      "rootUri": "file:///home/lhebendanz/.pub_cache/hosted/pub.dartlang.org/video_player_platform_interface-5.1.4",
       "packageUri": "lib/",
       "languageVersion": "2.12"
     },
@@ -266,7 +266,7 @@
       "languageVersion": "2.13"
     }
   ],
-  "generated": "2023-01-22T00:07:17.012154Z",
+  "generated": "2023-01-22T15:30:48.648958Z",
   "generator": "pub",
   "generatorVersion": "2.18.2"
 }

@@ -33,45 +33,37 @@ class IPTVPlayer extends StatefulWidget {
   }
 }
 
-class VideoInfoWidget extends StatefulWidget {
+class VideoInfoWidget extends StatelessWidget {
   const VideoInfoWidget({required this.service, super.key});
-
   final ServiceElem service;
 
   @override
-  State<StatefulWidget> createState() {
-    return _VideoInfoWidget();
-  }
-}
-
-class _VideoInfoWidget extends State<VideoInfoWidget> {
-  @override
-  void initState() {
-    super.initState();
-  }
-
-  @override
   Widget build(BuildContext context) {
-    final s = widget.service;
+    final s = service;
     final notifier = Provider.of<PlayerNotifier>(context, listen: true);
 
     return AnimatedOpacity(
-        opacity: notifier.hideStuff ? 0.0 : 1.0,
-        duration: const Duration(milliseconds: 300),
-        child: Align(
+      opacity: notifier.hideStuff ? 0.0 : 1.0,
+      duration: const Duration(milliseconds: 300),
+      child: Align(
           alignment: Alignment.topCenter,
-          child: FractionallySizedBox(
-            widthFactor: 1.0,
-            heightFactor: 0.2,
-            child: Row(
-              children: [
-                Image(image: NetworkImage(s.logo.toString())),
-                const SizedBox(width: 30),
-                Text(s.serviceName, textScaleFactor: 2.5)
-              ],
+          child: ClipRect(
+            clipBehavior: Clip.antiAliasWithSaveLayer,
+            child: FractionallySizedBox(
+              widthFactor: 1.0,
+              heightFactor: 0.2,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: [
+                  Image(image: NetworkImage(s.logo.toString())),
+                  const SizedBox(width: 60),
+                  Text(s.serviceName,
+                      style: Theme.of(context).textTheme.headline3)
+                ],
+              ),
             ),
-          ),
-        ));
+          )),
+    );
   }
 }
 
@@ -126,9 +118,9 @@ class _IPTVPlayerState extends State<IPTVPlayer> {
     final newController = VideoPlayerController.network(
         serviceElems[currPlayIndex].dashmpd.toString());
 
-    if (_videoPlayerController1 != null) {
-      newController.setVolume(_videoPlayerController1!.value.volume);
-    }
+    // if (_videoPlayerController1 != null) {
+    //   newController.setVolume(_videoPlayerController1!.value.volume);
+    // }
 
     _videoPlayerController1 = newController;
 
