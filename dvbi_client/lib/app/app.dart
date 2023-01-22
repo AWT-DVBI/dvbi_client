@@ -80,11 +80,6 @@ class _IPTVPlayerState extends State<IPTVPlayer> {
   @override
   void initState() {
     super.initState();
-    videoControls = MyMaterialControls(
-      showPlayButton: true,
-      nextSrc: nextChannel,
-      prevSrc: prevChannel,
-    );
     initializeEverything();
   }
 
@@ -93,6 +88,7 @@ class _IPTVPlayerState extends State<IPTVPlayer> {
     _videoPlayerController1?.dispose();
 
     _chewieController?.dispose();
+
     super.dispose();
   }
 
@@ -109,30 +105,41 @@ class _IPTVPlayerState extends State<IPTVPlayer> {
   }
 
   Future<void> initializeEverything() async {
+    videoControls = MyMaterialControls(
+      showPlayButton: true,
+      nextSrc: nextChannel,
+      prevSrc: prevChannel,
+    );
     await initializeSources();
     await initializePlayer();
   }
 
   Future<void> initializePlayer() async {
     logger.d("Init video num $currPlayIndex");
-    final newController = VideoPlayerController.network(
-        serviceElems[currPlayIndex].dashmpd.toString());
+    final source = serviceElems[currPlayIndex].dashmpd.toString();
+    final newController = VideoPlayerController.network(source);
 
-    // if (_videoPlayerController1 != null) {
-    //   newController.setVolume(_videoPlayerController1!.value.volume);
-    // }
+    if (_videoPlayerController1 != null) {
+      newController.setVolume(_videoPlayerController1!.value.volume);
+    }
 
-    _videoPlayerController1 = newController;
+    try {
+      await newController.initialize();
+    } catch (e, trace) {
+      logger.e("Source: $source", e, trace);
+    }
 
-    await _videoPlayerController1!.initialize();
-
+    setState(() {
+      _videoPlayerController1 = newController;
+    });
     _createChewieController();
-    setState(() {});
   }
 
   Widget videoPlaybackError(BuildContext context, String error) {
-    return Row(
-        children: [Expanded(child: SingleChildScrollView(child: Text(error)))]);
+    return Row(children: [
+      Expanded(
+          child: SingleChildScrollView(child: Text("Playback error $error")))
+    ]);
   }
 
   void _createChewieController() {
@@ -209,7 +216,9 @@ class _IPTVPlayerState extends State<IPTVPlayer> {
       // autoInitialize: true,
     );
 
-    _chewieController = chewieController;
+    setState(() {
+      _chewieController = chewieController;
+    });
   }
 
   Future<void> nextChannel() async {
@@ -232,18 +241,19 @@ class _IPTVPlayerState extends State<IPTVPlayer> {
 
   Widget buildVideoPlayer() {
     final chewieController = _chewieController;
-    return chewieController != null &&
-            chewieController.videoPlayerController.value.isInitialized
-        ? Chewie(
-            controller: chewieController,
-          )
-        : Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: const [
-              CircularProgressIndicator(),
-              SizedBox(height: 20),
-            ],
-          );
+
+    if (chewieController != null) {
+      return Chewie(
+        controller: chewieController,
+      );
+    } else {
+      return Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: const [
+            CircularProgressIndicator(),
+            SizedBox(height: 20),
+          ]);
+    }
   }
 
   @override

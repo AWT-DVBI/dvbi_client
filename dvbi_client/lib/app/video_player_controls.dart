@@ -657,7 +657,9 @@ class _MyMaterialControlsState extends State<MyMaterialControls>
   }
 
   void _updateState() {
-    if (!mounted) return;
+    if (!mounted) {
+      return;
+    }
 
     // display the progress bar indicator only after the buffering delay if it has been set
     if (chewieController.progressIndicatorDelay != null) {

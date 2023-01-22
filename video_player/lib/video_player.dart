@@ -326,117 +326,123 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
 
   /// Attempts to open the given [dataSource] and load metadata about the video.
   Future<void> initialize() async {
-    try {
-      final bool allowBackgroundPlayback =
-          videoPlayerOptions?.allowBackgroundPlayback ?? false;
-      if (!allowBackgroundPlayback) {
-        _lifeCycleObserver = _VideoAppLifeCycleObserver(this);
-      }
-      _lifeCycleObserver?.initialize();
-      _creatingCompleter = Completer<void>();
+    // addListener(() {
+    //   if (value.hasError) {
+    //     logger.e("Inside video_player" + value.errorDescription!);
+    //   }
+    //   if (value.isInitialized) {}
+    //   if (value.isBuffering) {}
+    // });
 
-      late DataSource dataSourceDescription;
-      switch (dataSourceType) {
-        case DataSourceType.asset:
-          dataSourceDescription = DataSource(
-            sourceType: DataSourceType.asset,
-            asset: dataSource,
-            package: package,
-          );
-          break;
-        case DataSourceType.network:
-          dataSourceDescription = DataSource(
-            sourceType: DataSourceType.network,
-            uri: dataSource,
-            formatHint: formatHint,
-            httpHeaders: httpHeaders,
-          );
-          break;
-        case DataSourceType.file:
-          dataSourceDescription = DataSource(
-            sourceType: DataSourceType.file,
-            uri: dataSource,
-          );
-          break;
-        case DataSourceType.contentUri:
-          dataSourceDescription = DataSource(
-            sourceType: DataSourceType.contentUri,
-            uri: dataSource,
-          );
-          break;
-      }
-
-      if (videoPlayerOptions?.mixWithOthers != null) {
-        await _videoPlayerPlatform
-            .setMixWithOthers(videoPlayerOptions!.mixWithOthers);
-      }
-
-      _textureId = (await _videoPlayerPlatform.create(dataSourceDescription)) ??
-          kUninitializedTextureId;
-      _creatingCompleter!.complete(null);
-      final Completer<void> initializingCompleter = Completer<void>();
-
-      void eventListener(VideoEvent event) {
-        if (_isDisposed) {
-          return;
-        }
-
-        switch (event.eventType) {
-          case VideoEventType.initialized:
-            value = value.copyWith(
-              duration: event.duration,
-              size: event.size,
-              rotationCorrection: event.rotationCorrection,
-              isInitialized: event.duration != null,
-              errorDescription: null,
-            );
-            initializingCompleter.complete(null);
-            _applyLooping();
-            _applyVolume();
-            _applyPlayPause();
-            break;
-          case VideoEventType.completed:
-            // In this case we need to stop _timer, set isPlaying=false, and
-            // position=value.duration. Instead of setting the values directly,
-            // we use pause() and seekTo() to ensure the platform stops playing
-            // and seeks to the last frame of the video.
-            pause().then((void pauseResult) => seekTo(value.duration));
-            break;
-          case VideoEventType.bufferingUpdate:
-            value = value.copyWith(buffered: event.buffered);
-            break;
-          case VideoEventType.bufferingStart:
-            value = value.copyWith(isBuffering: true);
-            break;
-          case VideoEventType.bufferingEnd:
-            value = value.copyWith(isBuffering: false);
-            break;
-          case VideoEventType.unknown:
-            break;
-        }
-      }
-
-      if (_closedCaptionFileFuture != null) {
-        await _updateClosedCaptionWithFuture(_closedCaptionFileFuture);
-      }
-
-      void errorListener(Object obj) {
-        final PlatformException e = obj as PlatformException;
-        value = VideoPlayerValue.erroneous(e.message!);
-        _timer?.cancel();
-        if (!initializingCompleter.isCompleted) {
-          initializingCompleter.completeError(obj);
-        }
-      }
-
-      _eventSubscription = _videoPlayerPlatform
-          .videoEventsFor(_textureId)
-          .listen(eventListener, onError: errorListener);
-      return initializingCompleter.future;
-    } catch (e, trace) {
-      logger.e("Init failed.", e, trace);
-      return Future.error(e, trace);
+    final bool allowBackgroundPlayback =
+        videoPlayerOptions?.allowBackgroundPlayback ?? false;
+    if (!allowBackgroundPlayback) {
+      _lifeCycleObserver = _VideoAppLifeCycleObserver(this);
     }
+    _lifeCycleObserver?.initialize();
+    _creatingCompleter = Completer<void>();
+
+    late DataSource dataSourceDescription;
+    switch (dataSourceType) {
+      case DataSourceType.asset:
+        dataSourceDescription = DataSource(
+          sourceType: DataSourceType.asset,
+          asset: dataSource,
+          package: package,
+        );
+        break;
+      case DataSourceType.network:
+        dataSourceDescription = DataSource(
+          sourceType: DataSourceType.network,
+          uri: dataSource,
+          formatHint: formatHint,
+          httpHeaders: httpHeaders,
+        );
+        break;
+      case DataSourceType.file:
+        dataSourceDescription = DataSource(
+          sourceType: DataSourceType.file,
+          uri: dataSource,
+        );
+        break;
+      case DataSourceType.contentUri:
+        dataSourceDescription = DataSource(
+          sourceType: DataSourceType.contentUri,
+          uri: dataSource,
+        );
+        break;
+    }
+
+    if (videoPlayerOptions?.mixWithOthers != null) {
+      await _videoPlayerPlatform
+          .setMixWithOthers(videoPlayerOptions!.mixWithOthers);
+    }
+
+    _textureId = (await _videoPlayerPlatform.create(dataSourceDescription)) ??
+        kUninitializedTextureId;
+    _creatingCompleter!.complete(null);
+    final Completer<void> initializingCompleter = Completer<void>();
+
+    void eventListener(VideoEvent event) {
+      if (_isDisposed) {
+        return;
+      }
+
+      switch (event.eventType) {
+        case VideoEventType.initialized:
+          value = value.copyWith(
+            duration: event.duration,
+            size: event.size,
+            rotationCorrection: event.rotationCorrection,
+            isInitialized: event.duration != null,
+            errorDescription: null,
+          );
+          initializingCompleter.complete(null);
+          _applyLooping();
+          _applyVolume();
+          _applyPlayPause();
+          break;
+        case VideoEventType.completed:
+          // In this case we need to stop _timer, set isPlaying=false, and
+          // position=value.duration. Instead of setting the values directly,
+          // we use pause() and seekTo() to ensure the platform stops playing
+          // and seeks to the last frame of the video.
+          pause().then((void pauseResult) => seekTo(value.duration));
+          break;
+        case VideoEventType.bufferingUpdate:
+          value = value.copyWith(buffered: event.buffered);
+          break;
+        case VideoEventType.bufferingStart:
+          value = value.copyWith(isBuffering: true);
+          break;
+        case VideoEventType.bufferingEnd:
+          value = value.copyWith(isBuffering: false);
+          break;
+        case VideoEventType.unknown:
+          logger.e("VideoEventType: uknown ${event.eventType}");
+          break;
+      }
+    }
+
+    if (_closedCaptionFileFuture != null) {
+      await _updateClosedCaptionWithFuture(_closedCaptionFileFuture);
+    }
+
+    void errorListener(Object obj) {
+      final PlatformException e = obj as PlatformException;
+      value = VideoPlayerValue.erroneous(e.message!);
+      logger.e("Error listener fired", e.message!);
+      _timer?.cancel();
+      if (!initializingCompleter.isCompleted) {
+        initializingCompleter.completeError(obj);
+      }
+    }
+
+    _eventSubscription = _videoPlayerPlatform
+        .videoEventsFor(_textureId)
+        .listen(eventListener, onError: errorListener);
+
+    return initializingCompleter.future;
   }
 
   @override
