@@ -11,6 +11,9 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:video_player/video_player.dart';
 import 'package:wakelock/wakelock.dart';
+import 'package:logger/logger.dart';
+
+var logger = Logger(printer: PrettyPrinter());
 
 typedef ChewieRoutePageBuilder = Widget Function(
   BuildContext context,
@@ -549,7 +552,11 @@ class ChewieController extends ChangeNotifier {
 
     if ((autoInitialize || autoPlay) &&
         !videoPlayerController.value.isInitialized) {
-      await videoPlayerController.initialize();
+      try {
+        await videoPlayerController.initialize();
+      } catch (err, trace) {
+        logger.e("Failed to init video", err, trace);
+      }
     }
 
     if (autoPlay) {

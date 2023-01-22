@@ -1,5 +1,7 @@
 // ignore_for_file: depend_on_referenced_packages, unused_import
 
+import 'dart:developer';
+
 import 'package:chewie/chewie.dart';
 import 'package:dvbi_client/app/theme.dart';
 import 'package:flutter/material.dart';
@@ -9,7 +11,9 @@ import 'package:dvbi_lib/dvbi.dart';
 import 'package:dvbi_lib/service_elem.dart';
 import 'package:result_type/result_type.dart';
 import 'video_player_controls.dart';
+import 'package:chewie/src/notifiers/index.dart';
 import 'package:flutter/services.dart' show rootBundle;
+import 'package:provider/provider.dart';
 
 var logger = Logger(printer: PrettyPrinter());
 var loggerNoStack = Logger(printer: PrettyPrinter(methodCount: 0));
@@ -26,6 +30,48 @@ class IPTVPlayer extends StatefulWidget {
   @override
   State<StatefulWidget> createState() {
     return _IPTVPlayerState();
+  }
+}
+
+class VideoInfoWidget extends StatefulWidget {
+  const VideoInfoWidget({required this.service, super.key});
+
+  final ServiceElem service;
+
+  @override
+  State<StatefulWidget> createState() {
+    return _VideoInfoWidget();
+  }
+}
+
+class _VideoInfoWidget extends State<VideoInfoWidget> {
+  @override
+  void initState() {
+    super.initState();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final s = widget.service;
+    final notifier = Provider.of<PlayerNotifier>(context, listen: true);
+
+    return AnimatedOpacity(
+        opacity: notifier.hideStuff ? 0.0 : 1.0,
+        duration: const Duration(milliseconds: 300),
+        child: Align(
+          alignment: Alignment.topCenter,
+          child: FractionallySizedBox(
+            widthFactor: 1.0,
+            heightFactor: 0.2,
+            child: Row(
+              children: [
+                Image(image: NetworkImage(s.logo.toString())),
+                const SizedBox(width: 30),
+                Text(s.serviceName, textScaleFactor: 2.5)
+              ],
+            ),
+          ),
+        ));
   }
 }
 
@@ -80,16 +126,8 @@ class _IPTVPlayerState extends State<IPTVPlayer> {
 
     _videoPlayerController1 = newController;
 
-    try {
-      await _videoPlayerController1!.initialize();
-    } catch (err, trace) {
-      logger.e("Error initializing videoPlayer", err, trace);
+    await _videoPlayerController1!.initialize();
 
-      setState(() {
-        _videoPlayerController1!.value = _videoPlayerController1!.value
-            .copyWith(errorDescription: err.toString());
-      });
-    }
     _createChewieController();
     setState(() {});
   }
@@ -99,19 +137,6 @@ class _IPTVPlayerState extends State<IPTVPlayer> {
         children: [Expanded(child: SingleChildScrollView(child: Text(error)))]);
   }
 
-  Widget videoInfoWidget() {
-    return Align(
-        alignment: Alignment.topCenter,
-        child: FractionallySizedBox(
-          widthFactor: 1.0,
-          heightFactor: 0.2,
-          child: Container(
-            color: Colors.lightBlue,
-            child: Center(child: Text(currPlayIndex.toString())),
-          ),
-        ));
-  }
-
   void _createChewieController() {
     final chewieController = ChewieController(
       videoPlayerController: _videoPlayerController1!,
@@ -119,7 +144,7 @@ class _IPTVPlayerState extends State<IPTVPlayer> {
       looping: true,
       isLive: true,
       allowFullScreen: true,
-      overlay: videoInfoWidget(),
+      overlay: VideoInfoWidget(service: serviceElems[currPlayIndex]),
       customControls: MyMaterialControls(
         showPlayButton: true,
         nextSrc: nextChannel,

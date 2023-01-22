@@ -599,6 +599,7 @@ class _MyMaterialControlsState extends State<MyMaterialControls>
 
   Future<void> _initialize() async {
     _subtitleOn = chewieController.subtitle?.isNotEmpty ?? false;
+
     controller.addListener(_updateState);
 
     _updateState();
