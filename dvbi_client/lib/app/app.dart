@@ -128,7 +128,7 @@ class _IPTVPlayerState extends State<IPTVPlayer> {
     } catch (e, trace) {
       logger.e("Source: $source", e, trace);
     }
-
+    _videoPlayerController1?.dispose();
     _videoPlayerController1 = newController;
     _createChewieController();
     setState(() {});
@@ -215,6 +215,7 @@ class _IPTVPlayerState extends State<IPTVPlayer> {
       // autoInitialize: true,
     );
 
+    _chewieController?.dispose();
     _chewieController = chewieController;
   }
 
