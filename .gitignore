@@ -1,4 +1,7 @@
 .direnv
+**/.dart_tool
+**/.flutter-plugins
+**/.flutter-plugins-dependencies
 run-test-emulator
 result
 .vscode
