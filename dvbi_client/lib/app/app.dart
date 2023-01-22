@@ -129,10 +129,9 @@ class _IPTVPlayerState extends State<IPTVPlayer> {
       logger.e("Source: $source", e, trace);
     }
 
-    setState(() {
-      _videoPlayerController1 = newController;
-    });
+    _videoPlayerController1 = newController;
     _createChewieController();
+    setState(() {});
   }
 
   Widget videoPlaybackError(BuildContext context, String error) {
@@ -216,9 +215,7 @@ class _IPTVPlayerState extends State<IPTVPlayer> {
       // autoInitialize: true,
     );
 
-    setState(() {
-      _chewieController = chewieController;
-    });
+    _chewieController = chewieController;
   }
 
   Future<void> nextChannel() async {

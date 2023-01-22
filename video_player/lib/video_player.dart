@@ -326,14 +326,6 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
 
   /// Attempts to open the given [dataSource] and load metadata about the video.
   Future<void> initialize() async {
-    // addListener(() {
-    //   if (value.hasError) {
-    //     logger.e("Inside video_player" + value.errorDescription!);
-    //   }
-    //   if (value.isInitialized) {}
-    //   if (value.isBuffering) {}
-    // });
-
     final bool allowBackgroundPlayback =
         videoPlayerOptions?.allowBackgroundPlayback ?? false;
     if (!allowBackgroundPlayback) {
@@ -431,7 +423,6 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
     void errorListener(Object obj) {
       final PlatformException e = obj as PlatformException;
       value = VideoPlayerValue.erroneous(e.message!);
-      logger.e("Error listener fired", e.message!);
       _timer?.cancel();
       if (!initializingCompleter.isCompleted) {
         initializingCompleter.completeError(obj);
