@@ -79,6 +79,7 @@ class _IPTVPlayerState extends State<IPTVPlayer> {
   VideoPlayerController? _videoPlayerController1;
   ChewieController? _chewieController;
 
+  MyMaterialControls? videoControls;
   int? bufferDelay;
   late DVBI dvbi;
   late List<ServiceElem> serviceElems;
@@ -87,6 +88,11 @@ class _IPTVPlayerState extends State<IPTVPlayer> {
   @override
   void initState() {
     super.initState();
+    videoControls = MyMaterialControls(
+      showPlayButton: true,
+      nextSrc: nextChannel,
+      prevSrc: prevChannel,
+    );
     initializeEverything();
   }
 
@@ -138,6 +144,40 @@ class _IPTVPlayerState extends State<IPTVPlayer> {
   }
 
   void _createChewieController() {
+    final subtitles = [
+      Subtitle(
+        index: 0,
+        start: Duration.zero,
+        end: const Duration(seconds: 10),
+        text: const TextSpan(
+          children: [
+            TextSpan(
+              text: 'Hello',
+              style: TextStyle(color: Colors.red, fontSize: 22),
+            ),
+            TextSpan(
+              text: ' from ',
+              style: TextStyle(color: Colors.green, fontSize: 20),
+            ),
+            TextSpan(
+              text: 'subtitles',
+              style: TextStyle(color: Colors.blue, fontSize: 18),
+            )
+          ],
+        ),
+      ),
+      Subtitle(
+        index: 0,
+        start: const Duration(seconds: 10),
+        end: const Duration(seconds: 20),
+        text: 'Whats up? :)',
+        // text: const TextSpan(
+        //   text: 'Whats up? :)',
+        //   style: TextStyle(color: Colors.amber, fontSize: 22, fontStyle: FontStyle.italic),
+        // ),
+      ),
+    ];
+
     final chewieController = ChewieController(
       videoPlayerController: _videoPlayerController1!,
       autoPlay: true,
@@ -145,15 +185,22 @@ class _IPTVPlayerState extends State<IPTVPlayer> {
       isLive: true,
       allowFullScreen: true,
       overlay: VideoInfoWidget(service: serviceElems[currPlayIndex]),
-      customControls: MyMaterialControls(
-        showPlayButton: true,
-        nextSrc: nextChannel,
-        prevSrc: prevChannel,
-      ),
+      customControls: videoControls!,
       fullScreenByDefault: true,
       errorBuilder: videoPlaybackError,
-
       hideControlsTimer: const Duration(seconds: 1),
+      subtitle: Subtitles(subtitles),
+      subtitleBuilder: (context, dynamic subtitle) => Container(
+        padding: const EdgeInsets.all(10.0),
+        child: subtitle is InlineSpan
+            ? RichText(
+                text: subtitle,
+              )
+            : Text(
+                subtitle.toString(),
+                style: const TextStyle(color: Colors.black),
+              ),
+      ),
 
       // Try playing around with some of these other options:
 
