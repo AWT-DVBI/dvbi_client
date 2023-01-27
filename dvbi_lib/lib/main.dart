@@ -41,8 +41,11 @@ Future<void> main(List<String> args) async {
   //   await service.scheduleInfoAsync;
   //   serviceList.add(service);
   // }
-
-  await Future.wait(serviceList.map((e) => e.scheduleInfo()));
+  try {
+    await Future.wait(serviceList.map((e) => e.scheduleInfo()));
+  } catch (e) {
+    print(e.toString());
+  }
 
   JsonEncoder encoder = const JsonEncoder.withIndent('  ');
   String prettyprint = encoder.convert(serviceList);

@@ -1,3 +1,4 @@
+import 'dart:collection';
 import 'dart:developer';
 
 import 'package:xml/xml.dart';
@@ -148,7 +149,7 @@ class MyProgramInfo {
       {required XmlElement data, required XmlElement scheduleEvent}) {
     String programId = data.getAttribute("programId")!;
 
-    print("in my parse");
+    //print("in my parse");
 
     String mainTitle;
     String? secondaryTitle;
@@ -212,7 +213,7 @@ class MyProgramInfo {
     String publishedDuration =
         scheduleEvent.getElement("PublishedDuration")!.innerText;
 
-    print(publishedDuration);
+    print(programId + " " + publishedStartTime + " " + publishedDuration);
 
     return MyProgramInfo(
         programId: programId,
@@ -233,7 +234,9 @@ class MyProgramInfo {
         'synopsisShort': synopsisShort,
         'synopsisMedium': synopsisMedium,
         'genre': genre?.toString(),
-        'imageUrl': imageUrl?.toString()
+        'imageUrl': imageUrl?.toString(),
+        'publishedStartTime': publishedStartTime,
+        'publishedDuration': publishedDuration
       };
 }
 /*
@@ -264,13 +267,6 @@ class ScheduleInfo {
     }
 */
 
-    if (data.findAllElements("ProgramInformation").isEmpty) {
-      print("No ProgramInformation event");
-    }
-
-    if (data.findAllElements("Schedule").isEmpty) {
-      print("No Schedule");
-    }
 
     return ScheduleInfo(programInfoTable: programInfoTable);
   }
@@ -293,7 +289,11 @@ class MyScheduleInfo {
         .getElement("ProgramInformationTable")!
         .findAllElements("ProgramInformation");
 
+    //TODO in hashmap
     final programScheduleData = data.findAllElements("ScheduleEvent");
+    final map = HashMap<String, XmlElement>.fromIterable(programScheduleData,
+        key: (e) => e.getElement("Program")!.getAttribute("crid")!,
+        value: (e) => e);
 
     if (programInfoData.isEmpty || programScheduleData.isEmpty) {
       print("progInfo is empty");
@@ -301,18 +301,28 @@ class MyScheduleInfo {
       Iterable<MyProgramInfo> plist = data
           .findAllElements("ProgramInformation")
           .map((e) => MyProgramInfo.parse(
-              data: e,
-              scheduleEvent: programScheduleData.firstWhere((element) =>
-                  element.getElement("Program")!.getAttribute("crid")! ==
-                  e.getAttribute("programId")!)));
+              data: e, scheduleEvent: map[e.getAttribute("programId")]!));
 
       programs = plist.toList();
-      /*Iterable<ProgramInfo> plist = data
+
+      /*
+         //old long        
+       hashmap =  {crid: scheduleevent}
+ scheduleEvent: programScheduleData.firstWhere((element) =>
+                  element.getElement("Program")!.getAttribute("crid")! ==
+                  e.getAttribute("programId")!))
+                  programs = plist.toList();
+                  */
+/*
+      //works just removed for loop
+      Iterable<ProgramInfo> plist = data
           .findAllElements("ProgramInformation")
           .map((e) => ProgramInfo.parse(data: e));
 
       programs = plist.toList();
+
       */
+
     }
 
     return MyScheduleInfo(programInfoTable: programs);

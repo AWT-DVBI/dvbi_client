@@ -27,17 +27,30 @@ class ServiceElem {
         contentGuideSourceElem?.scheduleInfoEndpoint != null) {
       Uri endpoint = contentGuideSourceElem!.scheduleInfoEndpoint;
 
+      /*
       final n = DateTime.now();
 
       // Get unixtime of today at 0 o'clock
       final startTime = DateTime(n.year, n.month, n.day);
 
       final endUnixtime = startTime.add(Duration(days: days ?? 1));
+*/
+      // Get the datetime now (closest value to one of allowedList) and next 6h
+
+      final n6 = DateTime.now();
+      //allowed hours for api request(0:00, 3:00, 6:00, 9:00, 12:00, 15:00, 18:00, 21:00)
+      final allowedHours = [0, 3, 6, 9, 12, 15, 18, 21];
+      final currentHour = n6.hour;
+
+      final startTime6 = DateTime(n6.year, n6.month, n6.day,
+          findClosestValue(allowedHours, currentHour));
+
+      final endUnixtime6 = startTime6.add(Duration(hours: 6));
 
       endpoint = endpoint.replace(queryParameters: {
         "sid": contentGuideServiceRef ?? uniqueIdentifier,
-        "start_unixtime": startTime.millisecondsSinceEpoch.toString(),
-        "end_unixtime": endUnixtime.microsecondsSinceEpoch.toString()
+        "start_unixtime": startTime6.millisecondsSinceEpoch.toString(),
+        "end_unixtime": endUnixtime6.microsecondsSinceEpoch.toString()
       });
 
       var res = await http.get(endpoint);
@@ -182,4 +195,23 @@ class ServiceElem {
         dashmpd: dashmpd,
         logo: logo);
   }
+}
+
+/**
+ * find closest value to specific target in an array
+ */
+int findClosestValue(array, int target) {
+  int closest = 100;
+  int closestVal = 0;
+
+  for (int x in array) {
+    var difference = (x - target).abs();
+
+    if (difference < closest) {
+      closest = difference;
+      closestVal = x;
+    }
+  }
+
+  return closestVal;
 }
