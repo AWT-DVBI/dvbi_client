@@ -1,8 +1,8 @@
 // This is a generated file; do not edit or check into version control.
-FLUTTER_ROOT=/nix/store/8gcfk0g1lg8gccd9kv3rzj910w9pz1kj-flutter-3.3.3-unwrapped
-FLUTTER_APPLICATION_PATH=/home/lhebendanz/Projects/dvbi_client/video_player/example
+FLUTTER_ROOT=C:\noPrivelege\flutter
+FLUTTER_APPLICATION_PATH=C:\Users\balin\StudioProjects\dvbi_client\video_player\example
 COCOAPODS_PARALLEL_CODE_SIGN=true
-FLUTTER_TARGET=lib/main.dart
+FLUTTER_TARGET=lib\main.dart
 FLUTTER_BUILD_DIR=build
 FLUTTER_BUILD_NAME=1.0.0
 FLUTTER_BUILD_NUMBER=1

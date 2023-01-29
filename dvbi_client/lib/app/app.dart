@@ -23,6 +23,8 @@ class IPTVPlayer extends StatefulWidget {
       {Key? key, this.title = 'IPTV Player', this.dvbi, this.endpoint})
       : super(key: key);
 
+  static const routeName = "IPTVPlayer";
+
   final String title;
   final DVBI? dvbi;
   final Uri? endpoint;
