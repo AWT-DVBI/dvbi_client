@@ -20,21 +20,13 @@ class ServiceElem {
   final Uri? dashmpd;
   final Uri? logo;
   final http.Client httpClient;
-  MyScheduleInfo? _scheduleInfo;
+  ScheduleInfo? _scheduleInfo;
 
-  Future<MyScheduleInfo?> scheduleInfo({int? days}) async {
+  Future<ScheduleInfo?> scheduleInfo({int? days}) async {
     if (_scheduleInfo == null &&
         contentGuideSourceElem?.scheduleInfoEndpoint != null) {
       Uri endpoint = contentGuideSourceElem!.scheduleInfoEndpoint;
 
-      /*
-      final n = DateTime.now();
-
-      // Get unixtime of today at 0 o'clock
-      final startTime = DateTime(n.year, n.month, n.day);
-
-      final endUnixtime = startTime.add(Duration(days: days ?? 1));
-*/
       // Get the datetime now (closest value to one of allowedList) and next 6h
 
       final n6 = DateTime.now();
@@ -63,7 +55,7 @@ class ServiceElem {
       String xmlData = res.body;
       var data = XmlDocument.parse(xmlData);
 
-      _scheduleInfo = MyScheduleInfo.parse(data: data);
+      _scheduleInfo = ScheduleInfo.parse(data: data);
     }
 
     return _scheduleInfo;

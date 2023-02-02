@@ -25,116 +25,11 @@ class ProgramInfo {
   Genre? genre;
   Uri? imageUrl;
 
-  ProgramInfo(
-      {required this.programId,
-      required this.mainTitle,
-      required this.secondaryTitle,
-      required this.synopsisMedium,
-      required this.synopsisShort,
-      required this.genre,
-      required this.imageUrl});
-
-  factory ProgramInfo.parse({required XmlElement data}) {
-    String programId = data.getAttribute("programId")!;
-
-    String mainTitle;
-    String? secondaryTitle;
-    {
-      List<XmlElement> titles =
-          data.getElement("BasicDescription")!.findElements("Title").toList();
-
-      mainTitle = titles[0].innerText;
-      if (titles.length > 1) {
-        secondaryTitle = titles[1].innerText;
-      }
-    }
-
-    String? synopsisShort;
-    String synopsisMedium;
-    {
-      List<XmlElement> synopsis = data
-          .getElement("BasicDescription")!
-          .findElements("Synopsis")
-          .toList();
-
-      synopsisMedium = synopsis
-          .firstWhere((element) => element.getAttribute("length") == "medium")
-          .innerText;
-
-      if (synopsis.length > 1) {
-        secondaryTitle = synopsisMedium = synopsis
-            .firstWhere((element) => element.getAttribute("length") == "short")
-            .innerText;
-      }
-    }
-
-    String? genreStr = data
-        .getElement("BasicDescription")!
-        .getElement("Genre")
-        ?.getAttribute("href");
-    Genre? genre;
-
-    if (genreStr != null) {
-      for (final g in genreMap.keys) {
-        if (genreStr.startsWith(g!)) {
-          genre = genreMap[g];
-        }
-      }
-    }
-
-    Uri? imageUrl;
-    {
-      XmlElement? relatedMaterialElem =
-          data.getElement("BasicDescription")!.getElement("RelatedMaterial");
-
-      if (relatedMaterialElem != null) {
-        final howRelated = RelatedMaterialElem.parse(data: relatedMaterialElem);
-        imageUrl = howRelated.getLogo();
-      }
-    }
-
-    return ProgramInfo(
-        programId: programId,
-        mainTitle: mainTitle,
-        secondaryTitle: secondaryTitle,
-        synopsisShort: synopsisShort,
-        synopsisMedium: synopsisMedium,
-        genre: genre,
-        imageUrl: imageUrl);
-  }
-
-  Map<String, dynamic> toJson() => {
-        'programId': programId,
-        'mainTitle': mainTitle,
-        'secondaryTitle': secondaryTitle,
-        'synopsisShort': synopsisShort,
-        'synopsisMedium': synopsisMedium,
-        'genre': genre?.toString(),
-        'imageUrl': imageUrl?.toString()
-      };
-}
-
-class MyProgramInfo {
-  static const Map<String?, Genre> genreMap = {
-    "urn:tva:metadata:cs:ContentCS:2011": Genre.contentCS,
-    "urn:dvb:metadata:cs:ContentSubject:2019": Genre.contentSubject,
-    "urn:tva:metadata:cs:FormatCS:2011": Genre.formatCS
-  };
-
-  String programId;
-  String mainTitle;
-  String? secondaryTitle;
-  String synopsisMedium;
-  String? synopsisShort;
-
-  Genre? genre;
-  Uri? imageUrl;
-
   //from 6.10.7 ScheduleEvent
-  String publishedStartTime;
-  String publishedDuration;
+  DateTime? publishedStartTime;
+  double publishedDuration;
 
-  MyProgramInfo(
+  ProgramInfo(
       {required this.programId,
       required this.mainTitle,
       required this.secondaryTitle,
@@ -145,7 +40,7 @@ class MyProgramInfo {
       required this.publishedStartTime,
       required this.publishedDuration});
 
-  factory MyProgramInfo.parse(
+  factory ProgramInfo.parse(
       {required XmlElement data, required XmlElement scheduleEvent}) {
     String programId = data.getAttribute("programId")!;
 
@@ -207,15 +102,13 @@ class MyProgramInfo {
       }
     }
 
-    String publishedStartTime =
-        scheduleEvent.getElement("PublishedStartTime")!.innerText;
+    DateTime? publishedStartTime = DateTime.tryParse(
+        scheduleEvent.getElement("PublishedStartTime")!.innerText);
 
-    String publishedDuration =
-        scheduleEvent.getElement("PublishedDuration")!.innerText;
+    double publishedDuration =
+        parseTime(scheduleEvent.getElement("PublishedDuration")!.innerText);
 
-    print(programId + " " + publishedStartTime + " " + publishedDuration);
-
-    return MyProgramInfo(
+    return ProgramInfo(
         programId: programId,
         mainTitle: mainTitle,
         secondaryTitle: secondaryTitle,
@@ -235,53 +128,48 @@ class MyProgramInfo {
         'synopsisMedium': synopsisMedium,
         'genre': genre?.toString(),
         'imageUrl': imageUrl?.toString(),
-        'publishedStartTime': publishedStartTime,
+        'publishedStartTime': publishedStartTime?.toString(),
         'publishedDuration': publishedDuration
       };
 }
-/*
+
+//alternative remove PT und dann in Gui anzeigen 2H20M
+double parseTime(String time) {
+  RegExp onlyNumbers = RegExp(r'[^0-9]');
+
+  if (time.contains('H') && time.contains('M')) {
+    //return i.e. [PT2, 30M]
+    var x = time.split("H");
+
+    var aStr = x[0].replaceAll(onlyNumbers, ''); // '23'
+    var adouble = double.parse(aStr);
+    var a2Str = x[1].replaceAll(onlyNumbers, ''); // '23'
+    var a2double = double.parse(a2Str) / 60;
+
+    return adouble + a2double;
+  } else if (time.contains('H') && !time.contains('M')) {
+    var aStr = time.replaceAll(onlyNumbers, ''); // '23'
+    var adouble = double.parse(aStr);
+
+    return adouble;
+  } else if (time.contains('M') && !time.contains('H')) {
+    var aStr = time.replaceAll(onlyNumbers, ''); // '23'
+    var adouble = double.parse(aStr);
+
+    return adouble / 60;
+  } else {
+    print("case not found");
+    return 0;
+  }
+}
+
 class ScheduleInfo {
   final List<ProgramInfo> programInfoTable;
 
   ScheduleInfo({required this.programInfoTable});
 
   factory ScheduleInfo.parse({required XmlDocument data}) {
-    // Parse ProgramInformation Table
-    List<ProgramInfo> programInfoTable = [];
-    {
-      final programInfoData = data
-          .getElement("TVAMain")!
-          .getElement("ProgramDescription")!
-          .getElement("ProgramInformationTable")!
-          .findAllElements("ProgramInformation");
-
-      for (final pi in programInfoData) {
-        ProgramInfo info = ProgramInfo.parse(data: pi);
-        programInfoTable.add(info);
-      }
-    }
-
-/*debugg 
-    if (data.findAllElements("ProgramInformationTable").isEmpty) {
-      print("No ProgramInformationTable event");
-    }
-*/
-
-
-    return ScheduleInfo(programInfoTable: programInfoTable);
-  }
-
-  Map<String, dynamic> toJson() => {"programInfoTable": programInfoTable};
-}
-*/
-
-class MyScheduleInfo {
-  final List<MyProgramInfo> programInfoTable;
-
-  MyScheduleInfo({required this.programInfoTable});
-
-  factory MyScheduleInfo.parse({required XmlDocument data}) {
-    List<MyProgramInfo> programs = [];
+    List<ProgramInfo> programs = [];
 
     final programInfoData = data
         .getElement("TVAMain")!
@@ -296,36 +184,16 @@ class MyScheduleInfo {
         value: (e) => e);
 
     if (programInfoData.isEmpty || programScheduleData.isEmpty) {
-      print("progInfo is empty");
     } else {
-      Iterable<MyProgramInfo> plist = data
+      Iterable<ProgramInfo> plist = data
           .findAllElements("ProgramInformation")
-          .map((e) => MyProgramInfo.parse(
+          .map((e) => ProgramInfo.parse(
               data: e, scheduleEvent: map[e.getAttribute("programId")]!));
 
       programs = plist.toList();
-
-      /*
-         //old long        
-       hashmap =  {crid: scheduleevent}
- scheduleEvent: programScheduleData.firstWhere((element) =>
-                  element.getElement("Program")!.getAttribute("crid")! ==
-                  e.getAttribute("programId")!))
-                  programs = plist.toList();
-                  */
-/*
-      //works just removed for loop
-      Iterable<ProgramInfo> plist = data
-          .findAllElements("ProgramInformation")
-          .map((e) => ProgramInfo.parse(data: e));
-
-      programs = plist.toList();
-
-      */
-
     }
 
-    return MyScheduleInfo(programInfoTable: programs);
+    return ScheduleInfo(programInfoTable: programs);
   }
 
   Map<String, dynamic> toJson() => {"programInfoTable": programInfoTable};
