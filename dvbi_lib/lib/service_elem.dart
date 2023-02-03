@@ -55,7 +55,8 @@ class ServiceElem {
       String xmlData = res.body;
       var data = XmlDocument.parse(xmlData);
 
-      _scheduleInfo = ScheduleInfo.parse(data: data);
+      _scheduleInfo = ScheduleInfo.parse(
+          data: data, contentGuideSourceElem: contentGuideSourceElem!);
     }
 
     return _scheduleInfo;

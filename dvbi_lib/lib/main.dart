@@ -41,6 +41,8 @@ Future<void> main(List<String> args) async {
   //   await service.scheduleInfoAsync;
   //   serviceList.add(service);
   // }
+
+/*
   try {
     await Future.wait(serviceList.map((e) => e.scheduleInfo()));
   } catch (e) {
@@ -50,4 +52,14 @@ Future<void> main(List<String> args) async {
   JsonEncoder encoder = const JsonEncoder.withIndent('  ');
   String prettyprint = encoder.convert(serviceList);
   print(prettyprint);
+*/
+
+  //test request more metaData
+  try {
+    await Future.wait(serviceList.map(
+        (e) => e.scheduleInfo().then((value) => value?.detailProgramInfos())));
+  } catch (e) {
+    print(e.toString());
+  }
+//test ende
 }

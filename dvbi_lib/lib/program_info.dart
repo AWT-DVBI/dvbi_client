@@ -1,9 +1,12 @@
 import 'dart:collection';
 import 'dart:developer';
-
+import 'package:http/http.dart' as http;
+import 'package:dvbi_lib/content_guide_source.dart';
 import 'package:xml/xml.dart';
 import 'related_material.dart';
 import 'package:logging/logging.dart';
+
+import 'package:dvbi_lib/dvbi.dart';
 
 final Logger _log = Logger("program_info");
 
@@ -165,10 +168,15 @@ double parseTime(String time) {
 
 class ScheduleInfo {
   final List<ProgramInfo> programInfoTable;
+  final ContentGuideSourceElem contentGuideSourceElem;
+  List<DetailedProgramInfo>? _detailProgramInfos;
+  ScheduleInfo(
+      {required this.programInfoTable, required this.contentGuideSourceElem});
 
-  ScheduleInfo({required this.programInfoTable});
-
-  factory ScheduleInfo.parse({required XmlDocument data}) {
+  factory ScheduleInfo.parse(
+      {required XmlDocument data,
+      required ContentGuideSourceElem contentGuideSourceElem}) {
+    ContentGuideSourceElem elem = contentGuideSourceElem;
     List<ProgramInfo> programs = [];
 
     final programInfoData = data
@@ -193,73 +201,222 @@ class ScheduleInfo {
       programs = plist.toList();
     }
 
-    return ScheduleInfo(programInfoTable: programs);
+    return ScheduleInfo(
+        programInfoTable: programs, contentGuideSourceElem: elem);
   }
 
   Map<String, dynamic> toJson() => {"programInfoTable": programInfoTable};
+
+  ///get for a programlist a detailed programList
+  Future<List<DetailedProgramInfo>?> detailProgramInfos() async {
+    List<DetailedProgramInfo> detailProgramInfos = [];
+    print("in detailProgramInfos ");
+    if (_detailProgramInfos == null &&
+        contentGuideSourceElem.programInfoEndpoint != null) {
+      Uri endpoint = contentGuideSourceElem.programInfoEndpoint!;
+
+      for (ProgramInfo prog in programInfoTable) {
+        endpoint = endpoint.replace(queryParameters: {
+          "pid": prog.programId,
+        });
+
+        var res = await http.get(endpoint);
+        _log.fine("programinfo http request: ${res.request}");
+
+        if (res.statusCode != 200) {
+          throw DVBIException(
+              "Status code invalid. Code: ${res.statusCode} Reason: ${res.reasonPhrase}");
+        }
+        String xmlData = res.body;
+        var data = XmlDocument.parse(xmlData);
+        detailProgramInfos.add(DetailedProgramInfo.parse(data: data));
+      }
+    }
+
+    return detailProgramInfos;
+  }
 }
 
-// prgramminfo
-class Program {
-  //ProgramInformation programId i.e.="crid://zdf.de/metadata/broadcast_item/83791/"
-  String pid;
-  String title;
-  //program description Synopsis
-  String synopsis;
-  //pictureUrl-MediaUri
-  String mediaUrl;
-  //schedule PublishedStartTime-- erkennen über id
-  String startTime;
+///class that represents detailed meta data of a specific program
+class DetailedProgramInfo {
+  static const Map<String?, Genre> genreMap = {
+    "urn:tva:metadata:cs:ContentCS:2011": Genre.contentCS,
+    "urn:dvb:metadata:cs:ContentSubject:2019": Genre.contentSubject,
+    "urn:tva:metadata:cs:FormatCS:2011": Genre.formatCS
+  };
 
-  // PublishedDuration
-  String programDuration;
+  ///crid id
+  String programId;
 
-  Program(
-      {required this.pid,
-      required this.title,
-      required this.synopsis,
-      required this.mediaUrl,
-      required this.startTime,
-      required this.programDuration});
+  ///main title of the program
+  String mainTitle;
 
-  /// xmlElemet start at level ProgramInformation=dataprog & dataschedule=programlocationtable/ScheduleEvent
-  factory Program.parse(
-      {required XmlElement dataProg, required XmlElement dataSchedule}) {
-    String pid = dataProg.getAttribute("programId")!;
-    String title =
-        dataProg.getElement("BasicDescription")!.getElement("Title")!.innerText;
-    String? synopsis = dataProg
+  ///optional secondary title of the program
+  String? secondaryTitle;
+
+  ///Descriptive text about the entity. medium is mandatory
+  String synopsisMedium;
+
+  ///short Descriptive text about the entity. short is mandatory
+  String? synopsisShort;
+
+  ///long descriptive test is optional
+  String? synopsisLong;
+
+  ///a list of keywords associated to a programme. optional
+  List<String> keywords = [];
+
+  ///The genre or classification for the programme. optional
+  Genre? genre;
+
+  ///age describtion of the program
+  ParentalGuidance? minAge;
+
+  ///The list of credits for the specified programme.
+  List<CreditItems>? creditItemlist;
+
+  Uri? imageUrl;
+
+  //from 6.10.7 ScheduleEvent take data from the program id
+  DateTime? publishedStartTime;
+  double publishedDuration;
+
+  DetailedProgramInfo(
+      {required this.programId,
+      required this.mainTitle,
+      required this.secondaryTitle,
+      required this.synopsisMedium,
+      required this.synopsisShort,
+      required this.synopsisLong,
+      required this.genre,
+      required this.minAge,
+      required this.imageUrl,
+      required this.publishedStartTime,
+      required this.publishedDuration});
+
+  factory DetailedProgramInfo.parse({required XmlDocument data}) {
+    final programInfoData = data
+        .getElement("TVAMain")!
+        .getElement("ProgramDescription")!
+        .getElement("ProgramInformationTable")!
+        .getElement("ProgramInformation")!;
+
+    String programId = programInfoData.getAttribute("programId")!;
+
+    //print("in my parse");
+
+    String mainTitle;
+    String? secondaryTitle;
+    {
+      List<XmlElement> titles = programInfoData
+          .getElement("BasicDescription")!
+          .findElements("Title")
+          .toList();
+
+      mainTitle = titles[0].innerText;
+      if (titles.length > 1) {
+        secondaryTitle = titles[1].innerText;
+      }
+    }
+
+    String? synopsisLong;
+    String? synopsisShort;
+    String synopsisMedium;
+    {
+      List<XmlElement> synopsis = data
+          .getElement("BasicDescription")!
+          .findElements("Synopsis")
+          .toList();
+
+      synopsisMedium = synopsis
+          .firstWhere((element) => element.getAttribute("length") == "medium")
+          .innerText;
+
+      if (synopsis.length > 1) {
+        secondaryTitle = synopsisMedium = synopsis
+            .firstWhere((element) => element.getAttribute("length") == "short")
+            .innerText;
+
+        //TODO maybe if condi not engough as could be also null
+        synopsisLong = synopsisMedium = synopsis
+            .firstWhere((element) => element.getAttribute("length") == "Long")
+            .innerText;
+      }
+    }
+
+    String? genreStr = data
         .getElement("BasicDescription")!
-        .getElement("Synopsis")!
-        .innerText;
-    //TODO evtl uri
-    String mediaUrl = dataProg
-        .getElement("BasicDescription")!
-        .getElement("RelatedMaterial")!
-        .getElement("MediaLocator")!
-        .getElement("MediaUri")!
-        .innerText;
+        .getElement("Genre")
+        ?.getAttribute("href");
+    Genre? genre;
 
-    String startTime = dataSchedule.getElement("PublishedStartTime")!.innerText;
+    if (genreStr != null) {
+      for (final g in genreMap.keys) {
+        if (genreStr.startsWith(g!)) {
+          genre = genreMap[g];
+        }
+      }
+    }
 
-    String programDuration =
-        dataSchedule.getElement("PublishedDuration")!.innerText;
+    //TODO
+    ParentalGuidance? minAge;
 
-    return Program(
-        pid: pid,
-        title: title,
-        synopsis: synopsis,
-        mediaUrl: mediaUrl,
-        startTime: startTime,
-        programDuration: programDuration);
+    Uri? imageUrl;
+    {
+      XmlElement? relatedMaterialElem =
+          data.getElement("BasicDescription")!.getElement("RelatedMaterial");
+
+      if (relatedMaterialElem != null) {
+        final howRelated = RelatedMaterialElem.parse(data: relatedMaterialElem);
+        imageUrl = howRelated.getLogo();
+      }
+    }
+
+    DateTime? publishedStartTime =
+        DateTime.tryParse(data.getElement("PublishedStartTime")!.innerText);
+
+    //TODO how to get double of already used data
+    double publishedDuration = 0;
+
+    return DetailedProgramInfo(
+        programId: programId,
+        mainTitle: mainTitle,
+        secondaryTitle: secondaryTitle,
+        synopsisShort: synopsisShort,
+        synopsisMedium: synopsisMedium,
+        synopsisLong: synopsisLong,
+        genre: genre,
+        minAge: minAge,
+        imageUrl: imageUrl,
+        publishedStartTime: publishedStartTime,
+        publishedDuration: publishedDuration);
   }
 
   Map<String, dynamic> toJson() => {
-        'programid': pid,
-        'title': title,
-        'synopsis': synopsis,
-        'mediaUrl': mediaUrl,
-        'startTime': startTime,
-        'programDuration': programDuration
+        'programId': programId,
+        'mainTitle': mainTitle,
+        'secondaryTitle': secondaryTitle,
+        'synopsisShort': synopsisShort,
+        'synopsisMedium': synopsisMedium,
+        'genre': genre?.toString(),
+        'imageUrl': imageUrl?.toString(),
+        'publishedStartTime': publishedStartTime?.toString(),
+        'publishedDuration': publishedDuration
       };
+}
+
+///The minimum age rating or guidance/watershed indicators and optional text. ParentalGuidance Element
+class ParentalGuidance {
+  late int minimumAge;
+
+  String? explanatoryText;
+}
+
+///A maximum of 40 CreditsItem elements shall be present within a CreditsList element.
+class CreditItems {
+  ///The name of an organization referenced in a CreditsItem. This element shall only be supplied if PersonName is not present.
+  String? organisationName;
+
+  ///The name of the person referenced in a CreditsItem. GivenName is mandatory element. This element shall only be supplied if PersonName is not present.
+  String? personName;
 }
