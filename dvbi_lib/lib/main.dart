@@ -42,7 +42,7 @@ Future<void> main(List<String> args) async {
 
   final dvbi = await DVBI.create(endpointUrl: endpoint);
   var serviceList = dvbi.serviceElems;
-/*
+
   // await for (final service in dvbi.stream) {
   //   log.fine("Init ${service.serviceName}");
   //   await service.scheduleInfoAsync;
@@ -57,10 +57,10 @@ Future<void> main(List<String> args) async {
   JsonEncoder encoder = const JsonEncoder.withIndent('  ');
   String prettyprint = encoder.convert(serviceList);
   print(prettyprint);
-*/
 
 //test more program meta data
 
+/*
   if (userInput != null) {
     try {
       await Future.wait(serviceList.map((e) => e.scheduleInfo()));
@@ -75,4 +75,5 @@ Future<void> main(List<String> args) async {
         ?.detailProgramInfos()
         .then((value) => value?.forEach((element) => print(element.toJson()))));
   }
+  */
 }
