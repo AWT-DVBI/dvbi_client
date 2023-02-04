@@ -16,8 +16,22 @@ class ContentGuideSourceElem {
   factory ContentGuideSourceElem.parse({required XmlElement data}) {
     String scheduleInfoEndpoint =
         data.getElement("ScheduleInfoEndpoint")!.getElement("URI")!.innerText;
+
+    //TODO staging over production as production returns wrong values at the moment
+    if (scheduleInfoEndpoint.contains("production")) {
+      scheduleInfoEndpoint =
+          scheduleInfoEndpoint.replaceAll("production", "staging");
+    }
+
     String? programInfoEndpoint =
         data.getElement("ProgramInfoEndpoint")?.getElement("URI")!.innerText;
+    //TODO staging over production as production returns wrong values at the moment
+    if (programInfoEndpoint != null) {
+      if (programInfoEndpoint.contains("production")) {
+        programInfoEndpoint =
+            programInfoEndpoint.replaceAll("production", "staging");
+      }
+    }
     String providerName = data.getElement("ProviderName")!.innerText;
     String cgsid = data.getAttribute("CGSID")!;
 

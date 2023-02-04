@@ -16,6 +16,9 @@ Future<void> main(List<String> args) async {
   runner.argParser.addOption("endpoint", abbr: "e");
   //runner.argParser.addFlag("scheduleInfo", abbr: "si");
   runner.argParser.addFlag("verbose", abbr: "v");
+
+  runner.argParser.addOption("serviceName", abbr: "s");
+
   ArgResults argResults = runner.parse(args);
 
   Logger.root.onRecord.listen((record) {
@@ -33,16 +36,18 @@ Future<void> main(List<String> args) async {
 
   Uri endpoint = Uri.parse(argResults["endpoint"]);
 
+  String? userInput = argResults["serviceName"];
+
+  print(userInput);
+
   final dvbi = await DVBI.create(endpointUrl: endpoint);
   var serviceList = dvbi.serviceElems;
-
+/*
   // await for (final service in dvbi.stream) {
   //   log.fine("Init ${service.serviceName}");
   //   await service.scheduleInfoAsync;
   //   serviceList.add(service);
   // }
-
-/*
   try {
     await Future.wait(serviceList.map((e) => e.scheduleInfo()));
   } catch (e) {
@@ -54,12 +59,20 @@ Future<void> main(List<String> args) async {
   print(prettyprint);
 */
 
-  //test request more metaData
-  try {
-    await Future.wait(serviceList.map(
-        (e) => e.scheduleInfo().then((value) => value?.detailProgramInfos())));
-  } catch (e) {
-    print(e.toString());
+//test more program meta data
+
+  if (userInput != null) {
+    try {
+      await Future.wait(serviceList.map((e) => e.scheduleInfo()));
+    } catch (e) {
+      print(e.toString());
+    }
+
+    var res =
+        serviceList.firstWhere((element) => element.serviceName == userInput);
+
+    await res.scheduleInfo().then((value) => value
+        ?.detailProgramInfos()
+        .then((value) => value?.forEach((element) => print(element.toJson()))));
   }
-//test ende
 }
