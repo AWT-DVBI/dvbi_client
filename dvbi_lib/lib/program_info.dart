@@ -47,8 +47,6 @@ class ProgramInfo {
       {required XmlElement data, required XmlElement scheduleEvent}) {
     String programId = data.getAttribute("programId")!;
 
-    //print("in my parse");
-
     String mainTitle;
     String? secondaryTitle;
     {
@@ -369,30 +367,50 @@ class DetailedProgramInfo {
 
     //TODO elplanatorytext not mandatory
     ParentalGuidance? parentalGuidance;
-    if (programInfoData.findElements("ParentalGuidance").isNotEmpty) {
+
+    if (programInfoData
+        .getElement("BasicDescription")!
+        .findElements("ParentalGuidance")
+        .isNotEmpty) {
       parentalGuidance = ParentalGuidance(
           int.parse(programInfoData
-              .findElements("ParentalGuidance")
-              .firstWhere((element) => element.name == "mpeg7:MinimumAge")
+              .getElement("BasicDescription")!
+              .findAllElements("mpeg7:MinimumAge")
+              .first
               .innerText),
           programInfoData
-              .findElements("ParentalGuidance")
-              .firstWhere((element) => element.name == "ExplanatoryText")
+              .getElement("BasicDescription")!
+              .findAllElements("ExplanatoryText")
+              .first
               .innerText);
     }
 
     List<CreditItems>? creditItemlist;
-    if (programInfoData.findElements("CreditsList>").isNotEmpty) {
+    if (programInfoData
+        .getElement("BasicDescription")!
+        .findElements("CreditsList")
+        .isNotEmpty) {
       creditItemlist = [];
-      creditItemlist.add(CreditItems.parse(
-          programInfoData.findElements("CreditsList").toList()));
+
+      creditItemlist.add(CreditItems(
+          programInfoData.findAllElements("OrganizationName").first.innerText,
+          null));
     }
 
     List<String> keywords = [];
-    if (programInfoData.findElements("Keywords").isNotEmpty) {
+    print(programInfoData
+        .getElement("BasicDescription")!
+        .findElements("Keyword")
+        .isNotEmpty);
+    if (programInfoData
+        .getElement("BasicDescription")!
+        .findElements("Keyword")
+        .isNotEmpty) {
       //if keywords are present
-      List<XmlElement> xmlKeywords =
-          programInfoData.findElements("Keywords").toList();
+      List<XmlElement> xmlKeywords = programInfoData
+          .getElement("BasicDescription")!
+          .findElements("Keyword")
+          .toList();
 
       for (XmlElement keyword in xmlKeywords) {
         keywords.add(keyword.innerText);
@@ -442,6 +460,9 @@ class DetailedProgramInfo {
         'synopsisLong': synopsisLong?.toString(),
         'genre': genre?.toString(),
         'imageUrl': imageUrl?.toString(),
+        'keywords': keywords,
+        'minAge': minAge?.minimumAge,
+        'creditItemlist': creditItemlist?.first.organisationName,
         'publishedStartTime': publishedStartTime?.toString(),
         'publishedDuration': publishedDuration
       };
