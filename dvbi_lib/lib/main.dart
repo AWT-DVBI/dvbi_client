@@ -75,5 +75,6 @@ Future<void> main(List<String> args) async {
         ?.detailProgramInfos()
         .then((value) => value?.forEach((element) => print(element.toJson()))));
   }
-  */
+
+*/
 }
