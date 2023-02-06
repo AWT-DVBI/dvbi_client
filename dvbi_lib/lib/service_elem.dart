@@ -39,13 +39,21 @@ class ServiceElem {
       final startTime6 = DateTime(n6.year, n6.month, n6.day,
           findClosestValue(allowedHours, currentHour));
 
-      final endUnixtime6 = startTime6.add(Duration(hours: 6));
+      final endUnixTime6 = startTime6.add(Duration(hours: 6));
 
+      //only seconds supported from dvbistandard
+
+      final startTime6ToSec = (startTime6.millisecondsSinceEpoch ~/ 1000);
+      final endUnixTime6ToSec = (endUnixTime6.millisecondsSinceEpoch ~/ 1000);
+
+      // start_unixtime following standard, but "start" provides more accurate data
       endpoint = endpoint.replace(queryParameters: {
         "sid": contentGuideServiceRef ?? uniqueIdentifier,
-        "start_unixtime": startTime6.millisecondsSinceEpoch.toString(),
-        "end_unixtime": endUnixtime6.microsecondsSinceEpoch.toString()
+        "start": startTime6ToSec.toString(),
+        "end": endUnixTime6ToSec.toString()
       });
+
+      //print(endpoint.toString());
 
       var res = await http.get(endpoint);
       _log.fine("scheduleInfo http request: ${res.request}");
@@ -57,7 +65,8 @@ class ServiceElem {
       String xmlData = res.body;
       var data = XmlDocument.parse(xmlData);
 
-      _scheduleInfo = ScheduleInfo.parse(data: data);
+      _scheduleInfo = ScheduleInfo.parse(
+          data: data, contentGuideSourceElem: contentGuideSourceElem!);
     }
 
     return _scheduleInfo;
@@ -191,9 +200,7 @@ class ServiceElem {
   }
 }
 
-/**
- * find closest value to specific target in an array
- */
+/// find closest value to specific target in an array
 int findClosestValue(array, int target) {
   int closest = 100;
   int closestVal = 0;
