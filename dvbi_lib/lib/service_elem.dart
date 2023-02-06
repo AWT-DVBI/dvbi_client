@@ -39,23 +39,19 @@ class ServiceElem {
 
       final endUnixTime6 = startTime6.add(Duration(hours: 6));
 
-      //TODO only seconds supported from dvbistandard
+      //only seconds supported from dvbistandard
 
       final startTime6ToSec = (startTime6.millisecondsSinceEpoch ~/ 1000);
       final endUnixTime6ToSec = (endUnixTime6.millisecondsSinceEpoch ~/ 1000);
 
-      print("time");
-      print(startTime6ToSec);
-      print(endUnixTime6ToSec);
-
-      //TODO start_unixtime following standard, but "start" provides more accurate data
+      // start_unixtime following standard, but "start" provides more accurate data
       endpoint = endpoint.replace(queryParameters: {
         "sid": contentGuideServiceRef ?? uniqueIdentifier,
         "start": startTime6ToSec.toString(),
         "end": endUnixTime6ToSec.toString()
       });
 
-      print(endpoint.toString());
+      //print(endpoint.toString());
 
       var res = await http.get(endpoint);
       _log.fine("scheduleInfo http request: ${res.request}");
