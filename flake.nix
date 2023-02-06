@@ -134,6 +134,7 @@
 
             # Flutter configuration
             export CHROME_EXECUTABLE="chromium";
+           # export HOME=${tmpdir}
             export TMP=$HOME
             mkdir -p $TMP/.cache/flutter
             

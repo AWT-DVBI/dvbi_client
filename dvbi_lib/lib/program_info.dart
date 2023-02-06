@@ -1,3 +1,5 @@
+// ignore_for_file: unused_import, unused_element
+
 import 'dart:collection';
 import 'dart:developer';
 import 'package:http/http.dart' as http;
@@ -5,7 +7,6 @@ import 'package:dvbi_lib/content_guide_source.dart';
 import 'package:xml/xml.dart';
 import 'related_material.dart';
 import 'package:logging/logging.dart';
-
 import 'package:dvbi_lib/dvbi.dart';
 
 final Logger _log = Logger("program_info");
