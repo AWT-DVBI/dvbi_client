@@ -19,8 +19,9 @@ var logger = Logger(printer: PrettyPrinter());
 var loggerNoStack = Logger(printer: PrettyPrinter(methodCount: 0));
 
 class IPTVPlayer extends StatefulWidget {
+
   const IPTVPlayer(
-      {Key? key, this.title = 'IPTV Player', this.dvbi, this.endpoint})
+      {Key? key, this.title = 'IPTV Player', this.dvbi, this.endpoint, this.currChannel = 0})
       : super(key: key);
 
   static const routeName = "IPTVPlayer";
@@ -28,6 +29,7 @@ class IPTVPlayer extends StatefulWidget {
   final String title;
   final DVBI? dvbi;
   final Uri? endpoint;
+  final int currChannel;
 
   @override
   State<StatefulWidget> createState() {
@@ -77,7 +79,7 @@ class _IPTVPlayerState extends State<IPTVPlayer> {
   int? bufferDelay;
   late DVBI dvbi;
   late List<ServiceElem> serviceElems;
-  int currPlayIndex = 0;
+  late int currPlayIndex = widget.currChannel;
 
   @override
   void initState() {

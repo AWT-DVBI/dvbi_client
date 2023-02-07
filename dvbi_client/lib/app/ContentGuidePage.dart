@@ -40,18 +40,26 @@ class ContentGuidePage extends StatelessWidget {
           itemCount: serviceElems.length,
           itemBuilder: (BuildContext context, int index) {
             return InkWell(
-              onTap: () { Navigator.pushNamed(context, 'IPTVPlayer', arguments: index);},
+              onTap: () { Navigator.push(context, MaterialPageRoute(builder: (context) {
+                return IPTVPlayer(dvbi: dvbi, currChannel: index);
+              }));},
               child:
               Row(
+                mainAxisAlignment: MainAxisAlignment.start,
                 children: [
+                  Expanded(
+                flex: 2,
+                child:
                   Column(
                     children: [
                     Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Container(
+                        alignment: Alignment.centerLeft,
                       width: 50,
                       height: 50,
+                        margin: const EdgeInsets.all(10),
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
                         image: DecorationImage(
@@ -63,7 +71,8 @@ class ContentGuidePage extends StatelessWidget {
                     Flexible(
                       fit: FlexFit.loose,
                       child: Container(
-                        margin: const EdgeInsets.only(left: 10),
+                        alignment: Alignment.centerLeft,
+                        margin: const EdgeInsets.all(10),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
@@ -81,10 +90,13 @@ class ContentGuidePage extends StatelessWidget {
                 )
               ],
                   ),
+                  ),
+                  Expanded(flex: 8, child:
                   Column(
                     children: [
                       FutureProgramInfoWidget(serviceElement: serviceElems[index], scheduleInfo: serviceElems[index].scheduleInfo(), index: index)
                     ],
+                  ),
                   )
             ],
             )
@@ -127,10 +139,13 @@ class FutureProgramInfoWidget extends StatelessWidget {
            }
          }
          else if (snapshot.hasError) {
-           return Text("${snapshot.error}");
+           return Row( children: [
+             Text("${snapshot.error}")
+           ]
+         );
          }
          // By default, show a loading spinner
-         return const CircularProgressIndicator();
+         return Row(children: const [CircularProgressIndicator()]);
        },
      );
   }
@@ -151,38 +166,59 @@ class ProgramInfoWidget extends StatelessWidget {
   }) : super(key: key);
   @override
   Widget build(BuildContext context) {
+    var programInfo;
+    if(scheduleInfo.programInfoTable.isNotEmpty){
+      programInfo = scheduleInfo.programInfoTable[0];
+    }
+    else{
+      programInfo = ProgramInfo(programId: 'NA', mainTitle: 'NA', secondaryTitle: 'NA', synopsisMedium: '', synopsisShort: '', genre: null, imageUrl: null, publishedStartTime: null, publishedDuration: 0.0);
+    }
     return
         Row(
           mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.start,
           children: [
-            Container(
+            Flexible(
+                child:
+             Container(
+              alignment: Alignment.centerLeft,
+              margin: const EdgeInsets.all(10),
               width: 50,
               height: 50,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 image: DecorationImage(
-                  image: NetworkImage(scheduleInfo.programInfoTable[0]!.imageUrl.toString()),
+                  image: NetworkImage(programInfo.imageUrl.toString()),
                   fit: BoxFit.cover,
                 ),
               ),
+            )
             ),
             Flexible(
               fit: FlexFit.loose,
-              child: Container(
-                margin: const EdgeInsets.only(left: 10),
-                child: Column(
+                child:
+                Container(
+                  alignment: Alignment.centerLeft,
+                  child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      scheduleInfo.programInfoTable[0]!.mainTitle,
+                      programInfo.mainTitle,
                       style: const TextStyle(
                         fontWeight: FontWeight.bold,
                       ),
                     ),
+                    Text(
+                        programInfo.synopsisMedium,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                            fontWeight: FontWeight.normal
+                        )
+                    )
                   ],
                 ),
+                ),
               ),
-            ),
           ],
         );
   }
