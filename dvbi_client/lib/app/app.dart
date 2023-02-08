@@ -121,7 +121,7 @@ class _IPTVPlayerState extends State<IPTVPlayer> {
   Future<void> initializePlayer() async {
     logger.d("Init video num $currPlayIndex");
     final source = serviceElems[currPlayIndex].dashmpd.toString();
-    final newController = VideoPlayerController.network(source);
+    var newController = VideoPlayerController.network(source);
 
     if (_videoPlayerController1 != null) {
       newController.setVolume(_videoPlayerController1!.value.volume);
@@ -130,12 +130,26 @@ class _IPTVPlayerState extends State<IPTVPlayer> {
     try {
       await newController.initialize();
     } catch (e, trace) {
+      logger.d("Ran into error opening source $source", e.toString());
+      logger.d(e.toString());
       logger.e("Source: $source", e, trace);
     }
     _videoPlayerController1?.dispose();
+    if(newController.value.hasError){
+      logger.d(newController.value.hasError);
+      newController.dispose();
+      newController = VideoPlayerController.network("https://flutter.github.io/assets-for-api-docs/assets/videos/butterfly.mp4");
+      try{
+        await newController.initialize();
+      } catch (e, trace){
+        logger.d("Back up video source failed as well");
+      }
+    }
+
     _videoPlayerController1 = newController;
     _createChewieController();
-    setState(() {});
+    setState(() {
+    });
   }
 
   Widget videoPlaybackError(BuildContext context, String error) {
