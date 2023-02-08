@@ -19,9 +19,12 @@ var logger = Logger(printer: PrettyPrinter());
 var loggerNoStack = Logger(printer: PrettyPrinter(methodCount: 0));
 
 class IPTVPlayer extends StatefulWidget {
-
   const IPTVPlayer(
-      {Key? key, this.title = 'IPTV Player', this.dvbi, this.endpoint, this.startingChannel = 0})
+      {Key? key,
+      this.title = 'IPTV Player',
+      this.dvbi,
+      this.endpoint,
+      this.startingChannel = 0})
       : super(key: key);
 
   static const routeName = "IPTVPlayer";
@@ -43,7 +46,9 @@ class VideoInfoWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     var s = service;
-    String logoUrl = s.logo == null ? "https://docs.flutter.dev/assets/images/dash/dash-fainting.gif" : s.logo.toString();
+    String logoUrl = s.logo == null
+        ? "https://docs.flutter.dev/assets/images/dash/dash-fainting.gif"
+        : s.logo.toString();
     final notifier = Provider.of<PlayerNotifier>(context, listen: true);
     return AnimatedOpacity(
       opacity: notifier.hideStuff ? 0.0 : 1.0,
@@ -58,11 +63,12 @@ class VideoInfoWidget extends StatelessWidget {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [
-                Image.network(logoUrl,
-                  errorBuilder: (context, exception,stackTrace) {
-                  return Text('Your error widget...');
-                  },
-              ),
+                  Image.network(
+                    logoUrl,
+                    errorBuilder: (context, exception, stackTrace) {
+                      return Text('Your error widget...');
+                    },
+                  ),
                   const SizedBox(width: 60),
                   Text(s.serviceName,
                       style: Theme.of(context).textTheme.headline3)
@@ -137,20 +143,20 @@ class _IPTVPlayerState extends State<IPTVPlayer> {
       logger.d(e.toString());
       logger.e("Source: $source", e, trace);
     }
-    if(newController.value.hasError){
+    if (newController.value.hasError) {
       await newController.dispose();
-      newController = VideoPlayerController.network("https://flutter.github.io/assets-for-api-docs/assets/videos/butterfly.mp4");
-      try{
+      newController = VideoPlayerController.network(
+          "https://flutter.github.io/assets-for-api-docs/assets/videos/butterfly.mp4");
+      try {
         await newController.initialize();
-      } catch (e, trace){
+      } catch (e, trace) {
         logger.d("Back up video source failed as well");
       }
     }
 
     _videoPlayerController1 = newController;
     _createChewieController();
-    setState(() {
-    });
+    setState(() {});
   }
 
   Widget videoPlaybackError(BuildContext context, String error) {
