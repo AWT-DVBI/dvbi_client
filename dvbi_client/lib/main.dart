@@ -8,6 +8,7 @@ import 'package:logger/logger.dart';
 import 'package:dvbi_client/app/app.dart';
 
 import 'app/ContentGuidePage.dart';
+import 'app/theme.dart';
 
 // globals
 const String endpointUrl = "https://dvb-i.net/production/services.php/de";
@@ -34,23 +35,24 @@ class Root extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<DVBI>(
-      future: dvbi,
-      builder: (BuildContext context, AsyncSnapshot<DVBI> snapshot) {
-        if (snapshot.hasData) {
-          return MaterialApp(
-              routes: {
-                IPTVPlayer.routeName: (context) => IPTVPlayer(dvbi: snapshot.data),
-                ContentGuidePage.routeName: (context) => ContentGuidePage(dvbi: snapshot.data,),
-              },
-              home: ContentGuidePage(dvbi: snapshot.data));
-        }
-        else if (snapshot.hasError) {
-          return Text("${snapshot.error}");
-        }
-        // By default, show a loading spinner
-        return const CircularProgressIndicator();
-      },
+    return MaterialApp(
+      theme: AppTheme.dark,
+      home:  Scaffold(
+        body: FutureBuilder<DVBI>(
+        future: dvbi,
+        builder: (BuildContext context, AsyncSnapshot<DVBI> snapshot) {
+          if (snapshot.hasData) {
+            return Scaffold(
+                body: ContentGuidePage(dvbi: snapshot.data));
+      }
+      else if (snapshot.hasError) {
+        return Text("${snapshot.error}");
+      }
+      // By default, show a loading spinner
+      return const CircularProgressIndicator();
+    },
+    ),
+    )
     );
   }
 }

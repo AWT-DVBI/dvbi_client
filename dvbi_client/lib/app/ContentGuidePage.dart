@@ -27,7 +27,7 @@ class ContentGuidePage extends StatelessWidget {
               tooltip: 'Browse Channels',
               onPressed: () {
                 Navigator.push(context, MaterialPageRoute(builder: (context) {
-                  return IPTVPlayer(dvbi: dvbi);
+                   return IPTVPlayer(dvbi: dvbi);
                 }));
               },
               alignment: Alignment.center,
@@ -41,7 +41,7 @@ class ContentGuidePage extends StatelessWidget {
           itemBuilder: (BuildContext context, int index) {
             return InkWell(
               onTap: () { Navigator.push(context, MaterialPageRoute(builder: (context) {
-                return IPTVPlayer(dvbi: dvbi, currChannel: index);
+                return IPTVPlayer(dvbi: dvbi, startingChannel: index);
               }));},
               child:
               Row(

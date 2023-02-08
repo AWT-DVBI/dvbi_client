@@ -21,7 +21,7 @@ var loggerNoStack = Logger(printer: PrettyPrinter(methodCount: 0));
 class IPTVPlayer extends StatefulWidget {
 
   const IPTVPlayer(
-      {Key? key, this.title = 'IPTV Player', this.dvbi, this.endpoint, this.currChannel = 0})
+      {Key? key, this.title = 'IPTV Player', this.dvbi, this.endpoint, this.startingChannel = 0})
       : super(key: key);
 
   static const routeName = "IPTVPlayer";
@@ -29,7 +29,7 @@ class IPTVPlayer extends StatefulWidget {
   final String title;
   final DVBI? dvbi;
   final Uri? endpoint;
-  final int currChannel;
+  final int startingChannel;
 
   @override
   State<StatefulWidget> createState() {
@@ -40,12 +40,11 @@ class IPTVPlayer extends StatefulWidget {
 class VideoInfoWidget extends StatelessWidget {
   const VideoInfoWidget({required this.service, super.key});
   final ServiceElem service;
-
   @override
   Widget build(BuildContext context) {
-    final s = service;
+    var s = service;
+    String logoUrl = s.logo == null ? "https://docs.flutter.dev/assets/images/dash/dash-fainting.gif" : s.logo.toString();
     final notifier = Provider.of<PlayerNotifier>(context, listen: true);
-
     return AnimatedOpacity(
       opacity: notifier.hideStuff ? 0.0 : 1.0,
       duration: const Duration(milliseconds: 300),
@@ -59,7 +58,11 @@ class VideoInfoWidget extends StatelessWidget {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [
-                  Image(image: NetworkImage(s.logo.toString())),
+                Image.network(logoUrl,
+                  errorBuilder: (context, exception,stackTrace) {
+                  return Text('Your error widget...');
+                  },
+              ),
                   const SizedBox(width: 60),
                   Text(s.serviceName,
                       style: Theme.of(context).textTheme.headline3)
@@ -79,11 +82,12 @@ class _IPTVPlayerState extends State<IPTVPlayer> {
   int? bufferDelay;
   late DVBI dvbi;
   late List<ServiceElem> serviceElems;
-  late int currPlayIndex = widget.currChannel;
+  late int currPlayIndex;
 
   @override
   void initState() {
     super.initState();
+    currPlayIndex = widget.startingChannel;
     initializeEverything();
   }
 
@@ -130,14 +134,11 @@ class _IPTVPlayerState extends State<IPTVPlayer> {
     try {
       await newController.initialize();
     } catch (e, trace) {
-      logger.d("Ran into error opening source $source", e.toString());
       logger.d(e.toString());
       logger.e("Source: $source", e, trace);
     }
-    _videoPlayerController1?.dispose();
     if(newController.value.hasError){
-      logger.d(newController.value.hasError);
-      newController.dispose();
+      await newController.dispose();
       newController = VideoPlayerController.network("https://flutter.github.io/assets-for-api-docs/assets/videos/butterfly.mp4");
       try{
         await newController.initialize();
@@ -240,6 +241,7 @@ class _IPTVPlayerState extends State<IPTVPlayer> {
   Future<void> nextChannel() async {
     await _videoPlayerController1!.dispose();
     currPlayIndex += 1;
+    setState(() {});
     if (currPlayIndex >= serviceElems.length) {
       currPlayIndex = 0;
     }
@@ -247,7 +249,7 @@ class _IPTVPlayerState extends State<IPTVPlayer> {
   }
 
   Future<void> prevChannel() async {
-    await _videoPlayerController1!.pause();
+    await _videoPlayerController1!.dispose();
     currPlayIndex -= 1;
     if (currPlayIndex < 0) {
       currPlayIndex = serviceElems.length - 1;
@@ -274,10 +276,8 @@ class _IPTVPlayerState extends State<IPTVPlayer> {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: widget.title,
-      theme: AppTheme.dark,
-      home: Column(
+    return Scaffold(
+      body: Column(
         children: <Widget>[
           Expanded(child: Center(child: buildVideoPlayer())),
         ],
