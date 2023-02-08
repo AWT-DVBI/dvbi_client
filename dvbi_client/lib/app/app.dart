@@ -120,7 +120,7 @@ class _IPTVPlayerState extends State<IPTVPlayer> {
   Future<void> initializePlayer() async {
     logger.d("Init video num $currPlayIndex");
     final source = serviceElems[currPlayIndex].dashmpd.toString();
-    var newController = VideoPlayerController.network(source);
+    VideoPlayerController newController = VideoPlayerController.network(source);
 
     if (_videoPlayerController1 != null) {
       newController.setVolume(_videoPlayerController1!.value.volume);
@@ -132,6 +132,7 @@ class _IPTVPlayerState extends State<IPTVPlayer> {
       logger.d(e.toString());
       logger.e("Source: $source", e, trace);
     }
+    _videoPlayerController1?.dispose();
     if (newController.value.hasError) {
       await newController.dispose();
       newController = VideoPlayerController.network(
@@ -244,7 +245,7 @@ class _IPTVPlayerState extends State<IPTVPlayer> {
   }
 
   Future<void> prevChannel() async {
-    await _videoPlayerController1!.dispose();
+    await _videoPlayerController1!.pause();
     currPlayIndex -= 1;
     if (currPlayIndex < 0) {
       currPlayIndex = serviceElems.length - 1;
