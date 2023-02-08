@@ -22,16 +22,16 @@ class IPTVPlayer extends StatefulWidget {
   const IPTVPlayer(
       {Key? key,
       this.title = 'IPTV Player',
-      this.dvbi,
-      this.endpoint,
-      this.startingChannel = 0})
+      required this.dvbi,
+      required this.serviceElems,
+      required this.startingChannel})
       : super(key: key);
 
   static const routeName = "IPTVPlayer";
 
   final String title;
-  final DVBI? dvbi;
-  final Uri? endpoint;
+  final DVBI dvbi;
+  final List<ServiceElem> serviceElems;
   final int startingChannel;
 
   @override
@@ -86,13 +86,15 @@ class _IPTVPlayerState extends State<IPTVPlayer> {
 
   MyMaterialControls? videoControls;
   int? bufferDelay;
+  late int currPlayIndex;
   late DVBI dvbi;
   late List<ServiceElem> serviceElems;
-  late int currPlayIndex;
 
   @override
   void initState() {
     super.initState();
+    dvbi = widget.dvbi;
+    serviceElems = widget.serviceElems;
     currPlayIndex = widget.startingChannel;
     initializeEverything();
   }
@@ -106,25 +108,12 @@ class _IPTVPlayerState extends State<IPTVPlayer> {
     super.dispose();
   }
 
-  Future<void> initializeSources() async {
-    if (widget.dvbi != null) {
-      dvbi = widget.dvbi!;
-    } else {
-      // TODO: Catch failed to connect error
-      dvbi = await DVBI.create(endpointUrl: widget.endpoint!);
-    }
-
-    serviceElems =
-        dvbi.serviceElems.where((element) => element.dashmpd != null).toList();
-  }
-
   Future<void> initializeEverything() async {
     videoControls = MyMaterialControls(
       showPlayButton: true,
       nextSrc: nextChannel,
       prevSrc: prevChannel,
     );
-    await initializeSources();
     await initializePlayer();
   }
 

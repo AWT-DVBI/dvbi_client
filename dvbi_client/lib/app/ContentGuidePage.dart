@@ -7,18 +7,22 @@ import 'package:dvbi_lib/dvbi.dart';
 import 'package:dvbi_lib/service_elem.dart';
 
 class ContentGuidePage extends StatelessWidget {
-  const ContentGuidePage({Key? key, this.title = 'ContentGuidePage', this.dvbi})
+  const ContentGuidePage(
+      {Key? key,
+      this.title = 'ContentGuidePage',
+      this.dvbi,
+      required this.onTapRender,
+      required this.serviceElems})
       : super(key: key);
 
   static const routeName = "contentGuidePage";
-
+  final List<ServiceElem> serviceElems;
+  final void Function(int) onTapRender;
   final String title;
   final DVBI? dvbi;
 
   @override
   Widget build(BuildContext context) {
-    var serviceElems =
-        dvbi!.serviceElems.where((element) => element.dashmpd != null).toList();
     return Scaffold(
       appBar: AppBar(
         backgroundColor: const Color.fromRGBO(58, 66, 86, 1.0),
@@ -28,11 +32,7 @@ class ContentGuidePage extends StatelessWidget {
           IconButton(
             icon: const Icon(Icons.language),
             tooltip: 'Browse Channels',
-            onPressed: () {
-              Navigator.push(context, MaterialPageRoute(builder: (context) {
-                return IPTVPlayer(dvbi: dvbi);
-              }));
-            },
+            onPressed: () => onTapRender(0),
             alignment: Alignment.center,
           ),
         ],
@@ -42,11 +42,7 @@ class ContentGuidePage extends StatelessWidget {
         itemCount: serviceElems.length,
         itemBuilder: (BuildContext context, int index) {
           return InkWell(
-              onTap: () {
-                Navigator.push(context, MaterialPageRoute(builder: (context) {
-                  return IPTVPlayer(dvbi: dvbi, startingChannel: index);
-                }));
-              },
+              onTap: () => onTapRender(index),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.start,
                 children: [
