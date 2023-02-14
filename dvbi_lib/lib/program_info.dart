@@ -184,7 +184,7 @@ class ScheduleInfo {
         .getElement("ProgramInformationTable")!
         .findAllElements("ProgramInformation");
 
-    //TODO in hashmap
+    //Create HashMap of crid -> program XML Element
     final programScheduleData = data.findAllElements("ScheduleEvent");
     final map = HashMap<String, XmlElement>.fromIterable(programScheduleData,
         key: (e) => e.getElement("Program")!.getAttribute("crid")!,
@@ -195,7 +195,9 @@ class ScheduleInfo {
       Iterable<ProgramInfo> plist = data
           .findAllElements("ProgramInformation")
           .map((e) => ProgramInfo.parse(
-              data: e, scheduleEvent: map[e.getAttribute("programId")]!));
+              // Use HashMap to avoid n^2 lookup times
+              data: e,
+              scheduleEvent: map[e.getAttribute("programId")]!));
 
       programs = plist.toList();
     }

@@ -6,3 +6,7 @@
 run-test-emulator
 result
 .vscode
+report/*.aux
+report/*.log
+report/*.gz
+**/out.json
