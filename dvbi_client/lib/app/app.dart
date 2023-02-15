@@ -86,9 +86,7 @@ class _IPTVPlayerState extends State<IPTVPlayer> {
   @override
   void dispose() {
     _videoPlayerController1?.dispose();
-
     _chewieController?.dispose();
-
     super.dispose();
   }
 
@@ -104,17 +102,17 @@ class _IPTVPlayerState extends State<IPTVPlayer> {
         dvbi.serviceElems.where((element) => element.dashmpd != null).toList();
   }
 
-  Future<void> initializeEverything() async {
+  void initializeEverything() async {
     videoControls = MyMaterialControls(
       showPlayButton: true,
       nextSrc: nextChannel,
       prevSrc: prevChannel,
     );
     await initializeSources();
-    await initializePlayer();
+    initializePlayer();
   }
 
-  Future<void> initializePlayer() async {
+  void initializePlayer() async {
     logger.d("Init video num $currPlayIndex");
     final source = serviceElems[currPlayIndex].dashmpd.toString();
     final newController = VideoPlayerController.network(source);
@@ -122,14 +120,14 @@ class _IPTVPlayerState extends State<IPTVPlayer> {
     if (_videoPlayerController1 != null) {
       newController.setVolume(_videoPlayerController1!.value.volume);
     }
-
+    await _videoPlayerController1?.dispose();
+    _videoPlayerController1 = newController;
     try {
       await newController.initialize();
     } catch (e, trace) {
       logger.e("Source: $source", e, trace);
     }
-    await _videoPlayerController1?.dispose();
-    _videoPlayerController1 = newController;
+
     _createChewieController();
     setState(() {});
   }
@@ -219,22 +217,22 @@ class _IPTVPlayerState extends State<IPTVPlayer> {
     _chewieController = chewieController;
   }
 
-  Future<void> nextChannel() async {
-    await _videoPlayerController1!.dispose();
+  void nextChannel() {
+    _videoPlayerController1!.dispose();
     currPlayIndex += 1;
     if (currPlayIndex >= serviceElems.length) {
       currPlayIndex = 0;
     }
-    await initializePlayer();
+    initializePlayer();
   }
 
-  Future<void> prevChannel() async {
-    await _videoPlayerController1!.pause();
+  void prevChannel() {
+    _videoPlayerController1!.pause();
     currPlayIndex -= 1;
     if (currPlayIndex < 0) {
       currPlayIndex = serviceElems.length - 1;
     }
-    await initializePlayer();
+    initializePlayer();
   }
 
   Widget buildVideoPlayer() {
