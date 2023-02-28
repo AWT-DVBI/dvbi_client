@@ -139,8 +139,13 @@ Clients can also query the ProgramInfo endpoint to retrieve additional metadata 
 Overall, the DVB-I protocol provides a standard mechanism for delivering linear television services over the internet, with the aim of providing a seamless viewing experience across multiple devices without any limitations. The use of REST APIs and XML-based formats for delivering information about TV channels and shows enables clients to easily retrieve the information they need to present a comprehensive TV service to the user.
 
 
+\section{Development Setup}
 
+For Linux the Nix package manager and its accompanying development environment has been found to provide an efficient and organized approach to setting up a development environment. This method involves installing the Nix package manager as outlined in the project's README, followed by executing the \texttt{nix develop} command to obtain all necessary dependencies and enter into a virtual environment akin to that of Python. The configuration of the development environment is defined in the \texttt{flake.nix} file, which enables developers to specify the required software and tools, including their respective versions. Furthermore, this approach includes preconfigured tools such as VSCodium with preinstalled extensions, the Android SDK, and the Flutter compiler, resulting in a streamlined and time-efficient setup process.
 
+In summary, the utilization of Nix and its development environment provides an effective strategy for minimizing the complexity of setting up a development environment, ensuring reproducibility, and creating a dependable development environment.
+
+For Windows Flutter... TODO
 
 \begin{comment}
 

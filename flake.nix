@@ -27,7 +27,6 @@
           inherit pkgs;
           vscodeBaseDir = tmpdir + "/codium";
           env = {
-            #HOME = tmpdir;
             LD_LIBRARY_PATH="$LD_LIBRARY_PATH:${pkgs.libepoxy}/lib";
           };
         };
@@ -44,8 +43,6 @@
           platformVersions = [ "31" ];
           includeSources = true;
           includeSystemImages = true;
-          #systemImageTypes = [ "google_apis_playstore" ];
-          #abiVersions = [ "x86_64" ];
           cmakeVersions = [ "3.22.1" ];
           includeNDK = true;
           ndkVersions = [ "22.1.7171670" ];
