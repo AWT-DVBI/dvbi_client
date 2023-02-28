@@ -10,6 +10,7 @@
 \usepackage{url}
 \usepackage{verbatim}
 \usepackage{hyperref}
+\usepackage[T1]{fontenc}
 \def\BibTeX{{\rm B\kern-.05em{\sc i\kern-.025em b}\kern-.08em
     T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
 \begin{document}
@@ -125,6 +126,24 @@ To use async/await in Dart, developers mark functions as "async" and use the "aw
 Async/await is particularly useful in situations where multiple asynchronous operations need to be performed in sequence, and the result of each operation is dependent on the completion of the previous one. 
 
 
+\section{DVB-I Standard}
+
+The DVB-I (Digital Video Broadcasting - Internet) protocol is a standard developed by the Digital Video Broadcasting (DVB) organization for delivering linear television services over the internet. It aims to provide simpler and more accessible options for viewing both linear and VOD streaming services on any internet-connected device.
+
+At the core of the DVB-I protocol is the Service List Registry (SLR), which provides a REST API allowing clients to retrieve a list of services (ServiceList) in an XML-based format, including all information required to present the TV service in the client. The <Service> element of the ServiceList XML document holds metadata about a specific TV channel, such as the channel name, the channel logo URL, and the DASH MPD stream URL. The <ContentGuideSource> element, which can be referenced by multiple <Service> tags, provides information about the ProgramInfo and ScheduleInfo endpoints, which can be queried to retrieve more detailed information about the TV shows airing on the channel.
+
+To retrieve scheduling information about the TV shows airing on the channel, clients can send a GET HTTP request to the ScheduleInfo endpoint, which should include the service element ID (sid), the start unix time, and the end unix time of the time period for which scheduling data is desired. The response to this request is a new XML document containing multiple <ProgramInformation> tags, each of which provides important details about the TV shows airing on the channel, such as the main title, duration, and start time.
+
+Clients can also query the ProgramInfo endpoint to retrieve additional metadata about the TV shows airing on the channel, including the minimum age requirement, genre, and a longer description. This information can be useful for clients in presenting a more detailed schedule of TV shows to the user.
+
+Overall, the DVB-I protocol provides a standard mechanism for delivering linear television services over the internet, with the aim of providing a seamless viewing experience across multiple devices without any limitations. The use of REST APIs and XML-based formats for delivering information about TV channels and shows enables clients to easily retrieve the information they need to present a comprehensive TV service to the user.
+
+
+
+
+
+\begin{comment}
+
 \subsection{DVB-I Standard}
 
 %DVB-I standard rough overview of the structure
@@ -135,6 +154,8 @@ Async/await is particularly useful in situations where multiple asynchronous ope
 The DVB-I (DVB-Internet) standard is a specification developed by the Digital Video Broadcasting (DVB) organization for delivering linear television services over the internet.The standard defines the mechanisms to be used to find sets of linear television services delivered through broadband or broadcast mechanisms as well as methods to retrieve electronic programme data for those services.[ref to document]
 
 The core of the specification is the Service List Registry (SLR) which provides a set of REST APIs allowing clients (TVs, Mobile, Browser) to retrieve a list of services (ServiceList) in an XML-based format including all information required to present the TV service in the client. The DVB-I standard, published by ETSI, expands upon the existing DVB Broadcast-based delivery methods, such as Terrestrial, Satellite, and Cable, to provide simpler and more accessible options for viewing both Linear and VOD Streaming services on any internet-connected device. With this open standard, users can enjoy a seamless viewing experience across multiple devices without any limitations.
+
+\end{comment}
 
 
 \begin{comment}
