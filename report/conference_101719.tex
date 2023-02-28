@@ -8,6 +8,7 @@
 \usepackage{textcomp}
 \usepackage{xcolor}
 \usepackage{url}
+\usepackage{verbatim}
 \usepackage{hyperref}
 \def\BibTeX{{\rm B\kern-.05em{\sc i\kern-.025em b}\kern-.08em
     T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
@@ -60,17 +61,10 @@ In this evaluation, we will assess the success of our project in achieving its g
 
 \section{Scientific Background}
 
-In this section we will go over the technologies used and their functionality. 
-
-\subsection{DVB-I Standard}
+This section will provide an overview of the utilized technologies and their respective functionalities.
 
 
-
-
-
-\subsection{Flutter Framework}\label{AA}
-
-\section{Architecture Overview}
+\section{Flutter Architecture Overview}
 
 Flutter is a cross-platform framework for building mobile and desktop applications. Its architecture consists of four main layers: the Dart app layer, the framework layer, the engine layer, and the platform layer. Shown in figure \ref{fig:flutter_tech_stack}.
 
@@ -88,15 +82,48 @@ The engine layer is responsible for rasterizing composited scenes and provides l
 
 The platform layer ``is the native OS application that hosts all Flutter content and acts as the glue between the host operating system and Flutter``\cite{b1.1}. Flutter includes platform embedders for each of the target platforms, and you can also create a custom platform embedder.
 
-In summary, Flutter's architecture provides a robust and efficient rendering pipeline, bypassing system UI widget libraries and using its own widget set and Skia 2D library for rendering. This results in a high-performance, cross-platform framework with minimal abstractions and overhead.
+In summary, Flutter's architecture provides a robust and efficient rendering pipeline, bypassing system UI widget libraries and using its own widget set and Skia 2D library \cite{b1.2} for rendering. This results in a high-performance, cross-platform framework with minimal abstractions and overhead.
 
-\section{Integrating with other code}
+\section{Integrating Flutter with other code}
+
+Flutter and Dart provide several ways to integrate with other code written in different programming languages.
+
+For mobile and desktop apps, Flutter provides platform channels, which are a mechanism for communicating between Dart code and the platform-specific code of the host app. This allows developers to call custom code written in languages like Kotlin, Swift, or C-based APIs, including those generated for code written in modern languages like Rust or Go. The platform channel mechanism serializes Dart types into a common message format, which is sent to the receiving code that then deserializes it into a programming language-specific object displayed in figure \ref{fig:platform-channels}. 
+
+For C-based APIs, Dart provides a direct mechanism for binding to native code using the dart:ffi library, which can be considerably faster than platform channels since no serialization is required to pass data.
+
+For web apps, the js package serves a similar purpose to dart:ffi for C-based APIs, allowing developers to bind to native code directly from Dart. Additionally, since web apps run in the browser, developers can also use Dart's interop capabilities to integrate with JavaScript libraries, either by importing JavaScript libraries into Dart or by calling Dart code from JavaScript.
 
 
+\begin{figure}[ht]
+	\centerline{\includegraphics[width=\linewidth]{figures/platform-channels}}
+	\caption{Platform Channels Overview \cite{b1.1}}
+	\label{fig:platform-channels}
+\end{figure}
 
-\subsection{Units}
+Overall, Flutter and Dart provide a variety of interoperability mechanisms that allow developers to integrate their code with other programming languages and platforms, providing flexibility and extensibility to their applications.
 
-\section{Theoretical Background}
+\section{Dart Language}
+
+Dart is a class-based, object-oriented programming language with syntax that is similar to Java-style languages. It is optimized for client-side web and mobile app development, but can also be used for server-side programming. Some key concepts are:
+
+\begin{enumerate}
+	\item Everything in Dart is an object, and every object is an instance of a class.
+	\item Dart has a garbage collector that automatically frees memory that is no longer in use. 
+	\item Type annotations are optional in Dart because the language can infer types.
+	\item If you enable null safety in Dart, variables cannot contain null values unless you explicitly make them nullable with a question mark (?).
+	\item Dart does not have keywords for public, protected, and private access, but an identifier starting with an underscore (\_) is private to its library.
+	\item Dart supports concurrent programming with async-await, Future, and Stream objects.
+	\item A Future in Dart represents the result of an asynchronous operation and can be completed with a value or an error.
+\end{enumerate}
+
+\section{Dart Asynchronous Programming}
+In Dart, async/await is a powerful mechanism that allows for writing asynchronous code in a synchronous style. With async/await, developers can write code that doesn't block the application's main event loop while waiting for I/O operations, network requests, or other time-consuming tasks to complete.
+
+To use async/await in Dart, developers mark functions as "async" and use the "await" keyword to wait for the result of an asynchronous operation. When a function is marked as "async", it returns a Future object that can be used to obtain the result of the computation when it completes. The "await" keyword is used to wait for the Future to complete, and once it does, the result is returned as if it were a normal synchronous operation.
+
+Async/await is particularly useful in situations where multiple asynchronous operations need to be performed in sequence, and the result of each operation is dependent on the completion of the previous one. 
+
 
 \subsection{DVB-I Standard}
 
@@ -110,13 +137,9 @@ The DVB-I (DVB-Internet) standard is a specification developed by the Digital Vi
 The core of the specification is the Service List Registry (SLR) which provides a set of REST APIs allowing clients (TVs, Mobile, Browser) to retrieve a list of services (ServiceList) in an XML-based format including all information required to present the TV service in the client. The DVB-I standard, published by ETSI, expands upon the existing DVB Broadcast-based delivery methods, such as Terrestrial, Satellite, and Cable, to provide simpler and more accessible options for viewing both Linear and VOD Streaming services on any internet-connected device. With this open standard, users can enjoy a seamless viewing experience across multiple devices without any limitations.
 
 
-
-
-
+\begin{comment}
 
 \subsection{Flutter}
-
-
 
 What is Flutter. How does it work? Why we chose it?
 
@@ -129,6 +152,9 @@ One of the key benefits of Flutter is its hot-reload feature, which allows devel
 Flutter is also known for its fast development speed and ease of use, making it an ideal choice for startups and businesses that need to quickly develop and deploy high-quality mobile applications.
 
 In addition to mobile app development, Flutter can also be used for building desktop and web applications, thanks to its platform-independent nature. Overall, Flutter is a powerful and flexible mobile app development framework that is rapidly gaining popularity in the developer community.
+
+\end{comment}
+
 
 
 \section{Implementation}
@@ -270,6 +296,9 @@ citation first, followed by the original foreign-language citation \cite{b6}.
 
 \begin{thebibliography}{00}
 \bibitem{b1.1} Flutter, ``Flutter architectural overview``, [Online] \url{https://docs.flutter.dev/resources/architectural-overview}
+	
+\bibitem{b1.2} Skia 2D, ``Skia 2D Rendering Library``, [Online]
+\url{https://skia.org/}
 	
 %=============================0%
 \bibitem{b1} G. Eason, B. Noble, and I. N. Sneddon, ``On certain integrals of Lipschitz-Hankel type involving products of Bessel functions,'' Phil. Trans. Roy. Soc. London, vol. A247, pp. 529--551, April 1955.
