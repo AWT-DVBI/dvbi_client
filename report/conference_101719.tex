@@ -181,32 +181,14 @@ In addition to mobile app development, Flutter can also be used for building des
 
 \end{comment}
 
+\section{App Architecture}\label{arch}
+
+ The code for this implementation can be found on \emph{github}\footnote{\url{https://github.com/AWT-DVBI/dvbi_client}}.
+
+\section{Implementation DVB-I Parser}
 
 
-\section{Implementation}
 
-
-
-Our implementation is split into four big parts: the development setup \ref{dev_set}, a general overview of the architcture  \ref{arch}, the dvb-i parser libary, which contains all the xml parsings and http requests \ref{dvbi_parser} and finally the user interface which the client interacts with. \ref{gui}. The code for this implementation can be found on \emph{github}\footnote{\url{https://github.com/AWT-DVBI/dvbi_client}}.
-
-
-\subsection{Development Setup}\label{dev_set}
-
-Development Setup:
-Using Nix for a development environment
-TODO: Setup for Windows
-describe important libs that were used
-
-
-\subsection{Architecture}\label{arch}
-
-\subsubsection{General Overview}
-General Architecture:
-walkthrough of how a user interacts with client and how parser requests more info
-graphic of architecture
-
-
-\subsection{Dvb-I Parser}\label{dvbi_parser}
 
 libraries used
 XML to Dart object mapping
@@ -215,7 +197,10 @@ Lazy loading. Only request data you need. Request more on obj access
 Async http request for parallel fetching
 XML to JSON parsing  
 
-\subsection{Gui Application}\label{gui}
+
+
+\section{Implementation GUI}\label{dvbi_parser}
+
 
 libraries used(?)
 layout of GUI/Screenshots
@@ -250,8 +235,6 @@ only android in combination with exoplayer as mpeg dash is not supported by hls 
 subtitles, channel info button
 
 
-
-\section*{References}
 
 \begin{thebibliography}{00}
 \bibitem{b1.1} Flutter, ``Flutter architectural overview``, [Online] \url{https://docs.flutter.dev/resources/architectural-overview}
