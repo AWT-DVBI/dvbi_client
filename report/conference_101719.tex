@@ -176,14 +176,25 @@ Flutter uses a programming language called Dart, which is also developed by Goog
 One of the key benefits of Flutter is its hot-reload feature, which allows developers to quickly see the changes they make to the code in real-time on the app, without having to rebuild the entire application. This significantly speeds up the development process and makes it easier for developers to experiment with different UI designs and functionality.
 
 Flutter is also known for its fast development speed and ease of use, making it an ideal choice for startups and businesses that need to quickly develop and deploy high-quality mobile applications.
-
+y
 In addition to mobile app development, Flutter can also be used for building desktop and web applications, thanks to its platform-independent nature. Overall, Flutter is a powerful and flexible mobile app development framework that is rapidly gaining popularity in the developer community.
 
 \end{comment}
 
 \section{App Architecture}\label{arch}
 
- The code for this implementation can be found on \emph{github}\footnote{\url{https://github.com/AWT-DVBI/dvbi_client}}.
+The application code can be found on \emph{Github}\footnote{\url{https://github.com/AWT-DVBI/dvbi_client}}.
+The repository has four main directories. The dvbi\_client directory is the top level node that includes the other three directories, as it implements the graphical user interface and from which the main application gets compiled. 
+We then have the dvbi\_lib directory which implements the DVB-I parser library and a command line interface to test the parser. 
+The third directory is the video\_player library, which is a wrapper for the Java Exoplayer and makes it Flutter compatible. 
+
+\begin{figure}[ht]
+	\centerline{\includegraphics[width=\linewidth, height=\linewidth]{figures/dvbi_dir_structure}}
+	\caption{DVB-I Dependency Structure}
+	\label{fig:dvbi_dir_structure}
+\end{figure}
+
+
 
 \section{Implementation DVB-I Parser}
 
