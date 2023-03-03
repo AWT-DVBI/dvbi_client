@@ -27,7 +27,7 @@ Berlin, Germany \\}
 \textit{TU Berlin}\\
 Berlin, Germany \\}
 \and
-\IEEEauthorblockN{3\textsuperscript{rd} Balint}
+\IEEEauthorblockN{3\textsuperscript{rd} Balint Rüb}
 \IEEEauthorblockA{\textit{M. Sc. Information Systems Management} \\
 	\textit{TU Berlin}\\
 	Berlin, Germany \\}
@@ -58,7 +58,7 @@ The development of the DVB-I parser library involved reading the DVB-I standard 
 
 The development of the Android GUI app using Flutter involved building an intuitive user interface to present the TV services to the user, as well as incorporating the DVB-I parser library to retrieve and display the information for each service. We faced challenges while developing the app, including multiple bugs in libraries used and sparse documentation, which affected the app's functionality and usability.
 
-In this evaluation, we will assess the success of our project in achieving its goals and evaluate the performance and usability of the DVB-I parser library and Android GUI app developed. We will also discuss the challenges encountered during development and recommend future improvements to enhance the overall functionality and usability of the app.
+In this report, we will assess the success of our project in achieving its goals and evaluate the performance and usability of the DVB-I parser library and Android GUI app developed. We will also discuss the challenges encountered during development and recommend future improvements to enhance the overall functionality and usability of the app.
 
 \section{Scientific Background}
 
@@ -77,7 +77,7 @@ Flutter is a cross-platform framework for building mobile and desktop applicatio
 
 The Dart app layer is responsible for composing widgets into the desired UI and implementing business logic. It is owned by the app developer.
 
-The framework layer provides a higher-level API for building UI apps, including widgets, hit-testing, gesture detection, accessibility, and text input. It composites the app's widget tree into a scene.
+The framework layer provides a higher-level API for building UI apps, including widgets, hit-testing, gesture detection, accessibility, and text input. It composites the apps widget tree into a scene.
 
 The engine layer is responsible for rasterizing composited scenes and provides low-level implementation of Flutter's core APIs, including graphics, text layout, and the Dart runtime. It exposes its functionality to the framework using the dart:ui API and integrates with a specific platform using the platform layer.
 
@@ -113,7 +113,7 @@ Dart is a class-based, object-oriented programming language with syntax that is 
 	\item Dart has a garbage collector that automatically frees memory that is no longer in use. 
 	\item Type annotations are optional in Dart because the language can infer types.
 	\item If you enable null safety in Dart, variables cannot contain null values unless you explicitly make them nullable with a question mark (?).
-	\item Dart does not have keywords for public, protected, and private access, but an identifier starting with an underscore (\_) is private to its library.
+	\item Dart does not have keywords for public, protected, and private access, however an identifier starting with an underscore (\_) is private to its library.
 	\item Dart supports concurrent programming with async-await, Future, and Stream objects.
 	\item A Future in Dart represents the result of an asynchronous operation and can be completed with a value or an error.
 \end{enumerate}
@@ -128,13 +128,21 @@ Async/await is particularly useful in situations where multiple asynchronous ope
 
 \section{DVB-I Standard}
 
-The DVB-I (Digital Video Broadcasting - Internet) protocol is a standard developed by the Digital Video Broadcasting (DVB) organization for delivering linear television services over the internet. It aims to provide simpler and more accessible options for viewing both linear and VOD streaming services on any internet-connected device.
+\begin{figure}[ht]
+	\centerline{\includegraphics[width=\linewidth]{figures/DVBI-architecture.png}}
+	\caption{DVBI-I architecture and client interaction overview}
+	\label{dvbi-architecture}
+\end{figure}
 
-At the core of the DVB-I protocol is the Service List Registry (SLR), which provides a REST API allowing clients to retrieve a list of services (ServiceList) in an XML-based format, including all information required to present the TV service in the client. The <Service> element of the ServiceList XML document holds metadata about a specific TV channel, such as the channel name, the channel logo URL, and the DASH MPD stream URL. The <ContentGuideSource> element, which can be referenced by multiple <Service> tags, provides information about the ProgramInfo and ScheduleInfo endpoints, which can be queried to retrieve more detailed information about the TV shows airing on the channel.
+The DVB-I (Digital Video Broadcasting - Internet) \cite{DVBI-I} protocol is a standard developed by the Digital Video Broadcasting (DVB) \cite{DVB} organization. The DVB-I standard lays out processes to allow internet connected devices, such as smartphones, tablets, laptops, and smart TVs, to receive broadcast quality content, including live and on-demand TV channels. It aims to provide simpler and more accessible options for viewing both linear and Video-On-Demand (VOD) streaming services on any internet-connected device.
 
-To retrieve scheduling information about the TV shows airing on the channel, clients can send a GET HTTP request to the ScheduleInfo endpoint, which should include the service element ID (sid), the start unix time, and the end unix time of the time period for which scheduling data is desired. The response to this request is a new XML document containing multiple <ProgramInformation> tags, each of which provides important details about the TV shows airing on the channel, such as the main title, duration, and start time.
+The DVB-I standard consists of many components. Figure \ref{dvbi-architecture} illustrates the elements most relevant to our project. At the core of the DVB-I protocol is the Service List Registry (SLR), illustrated in \raisebox{.5pt}{\textcircled{\raisebox{-.9pt}{1}}}. The SLR provides a REST API allowing clients to retrieve a list of services (ServiceList) in an XML-based format, including all information required to present the TV service in the client. The \textit{<Service>} element of the ServiceList XML document holds metadata about a specific TV channel, such as the channel name, the channel logo URL, and the DASH MPD stream URL. The DASH MPD can be retrieved by making a request to an MPD server, as shown in  \raisebox{.5pt}{\textcircled{\raisebox{-.9pt}{2}}}.
 
-Clients can also query the ProgramInfo endpoint to retrieve additional metadata about the TV shows airing on the channel, including the minimum age requirement, genre, and a longer description. This information can be useful for clients in presenting a more detailed schedule of TV shows to the user.
+The \textit{<ContentGuideSource>} element, which can be referenced by multiple \textit{<Service>} tags, provides information about the ProgramInfo and ScheduleInfo endpoints, which can be queried to retrieve more detailed information about the TV shows airing on the channel.
+
+To retrieve scheduling information about the TV shows airing on a channel or additional programming information clients can send a GET HTTP request to a Content Guide Server, represented in \raisebox{.5pt}{\textcircled{\raisebox{-.9pt} {3}}}. Requests for scheduling info should include the service element ID (sid), the start unix time, and the end unix time of the time period for which scheduling data is desired. The response to this request is a new XML document containing multiple \textit{<ProgramInformation>} tags, each of which provide important details about the TV shows airing on the channel, such as the main title, duration, and start time.
+
+Clients can also query a ProgramInfo endpoint to retrieve additional metadata about the TV shows airing on the channel, including the minimum age requirement, genre, and a longer description. This information can be useful for clients in presenting a more detailed schedule of TV shows to the user.
 
 Overall, the DVB-I protocol provides a standard mechanism for delivering linear television services over the internet, with the aim of providing a seamless viewing experience across multiple devices without any limitations. The use of REST APIs and XML-based formats for delivering information about TV channels and shows enables clients to easily retrieve the information they need to present a comprehensive TV service to the user.
 
@@ -252,6 +260,12 @@ subtitles, channel info button
 	
 \bibitem{b1.2} Skia 2D, ``Skia 2D Rendering Library``, [Online]
 \url{https://skia.org/}
+
+\bibitem{DVB} Digital Video Broadcasting Project, [Online]
+\url{https://dvb.org/}
+
+\bibitem{DVBI-I} Digital Video Broadcasting-Internet: ``a standards-based solution for delivering television – live, linear and on-demand – in the internet age``
+\url{https://dvb-i.tv/}
 	
 \end{thebibliography}
 \end{document}
