@@ -66,9 +66,27 @@ In this section we will go over the technologies used and their functionality.
 
 
 
+The DVB-I (DVB-Internet) standard is a specification developed by the Digital Video Broadcasting (DVB) organization for delivering linear television services over the internet.The standard defines the mechanisms to be used to find sets of linear television services delivered through broadband or broadcast mechanisms as well as methods to retrieve electronic programme data for those services.[ref to document]
+
+The core of the specification is the Service List Registry (SLR) which provides a set of REST APIs allowing clients (TVs, Mobile, Browser) to retrieve a list of services (ServiceList) in an XML-based format including all information required to present the TV service in the client. The DVB-I standard, published by ETSI, expands upon the existing DVB Broadcast-based delivery methods, such as Terrestrial, Satellite, and Cable, to provide simpler and more accessible options for viewing both Linear and VOD Streaming services on any internet-connected device. With this open standard, users can enjoy a seamless viewing experience across multiple devices without any limitations.
+
+
+
 
 
 \subsection{Flutter Framework}\label{AA}
+
+What is Flutter. How does it work? Why we chose it?
+
+Flutter is an open-source mobile app development framework developed by Google that allows developers to create high-performance, cross-platform mobile applications for iOS, Android, and other platforms from a single codebase.
+
+Flutter uses a programming language called Dart, which is also developed by Google, and provides a rich set of pre-built UI widgets and tools that allow developers to create visually appealing and interactive mobile applications. The framework uses a reactive programming model, which means that changes in the app's state are automatically reflected in the UI, making it easy to build dynamic user interfaces.
+
+One of the key benefits of Flutter is its hot-reload feature, which allows developers to quickly see the changes they make to the code in real-time on the app, without having to rebuild the entire application. This significantly speeds up the development process and makes it easier for developers to experiment with different UI designs and functionality.
+
+Flutter is also known for its fast development speed and ease of use, making it an ideal choice for startups and businesses that need to quickly develop and deploy high-quality mobile applications.
+
+In addition to mobile app development, Flutter can also be used for building desktop and web applications, thanks to its platform-independent nature. Overall, Flutter is a powerful and flexible mobile app development framework that is rapidly gaining popularity in the developer community.
 
 \section{Architecture Overview}
 
@@ -96,39 +114,7 @@ In summary, Flutter's architecture provides a robust and efficient rendering pip
 
 \subsection{Units}
 
-\section{Theoretical Background}
 
-\subsection{DVB-I Standard}
-
-%DVB-I standard rough overview of the structure
-
-%What is DVBI
-
-
-The DVB-I (DVB-Internet) standard is a specification developed by the Digital Video Broadcasting (DVB) organization for delivering linear television services over the internet.The standard defines the mechanisms to be used to find sets of linear television services delivered through broadband or broadcast mechanisms as well as methods to retrieve electronic programme data for those services.[ref to document]
-
-The core of the specification is the Service List Registry (SLR) which provides a set of REST APIs allowing clients (TVs, Mobile, Browser) to retrieve a list of services (ServiceList) in an XML-based format including all information required to present the TV service in the client. The DVB-I standard, published by ETSI, expands upon the existing DVB Broadcast-based delivery methods, such as Terrestrial, Satellite, and Cable, to provide simpler and more accessible options for viewing both Linear and VOD Streaming services on any internet-connected device. With this open standard, users can enjoy a seamless viewing experience across multiple devices without any limitations.
-
-
-
-
-
-
-\subsection{Flutter}
-
-
-
-What is Flutter. How does it work? Why we chose it?
-
-Flutter is an open-source mobile app development framework developed by Google that allows developers to create high-performance, cross-platform mobile applications for iOS, Android, and other platforms from a single codebase.
-
-Flutter uses a programming language called Dart, which is also developed by Google, and provides a rich set of pre-built UI widgets and tools that allow developers to create visually appealing and interactive mobile applications. The framework uses a reactive programming model, which means that changes in the app's state are automatically reflected in the UI, making it easy to build dynamic user interfaces.
-
-One of the key benefits of Flutter is its hot-reload feature, which allows developers to quickly see the changes they make to the code in real-time on the app, without having to rebuild the entire application. This significantly speeds up the development process and makes it easier for developers to experiment with different UI designs and functionality.
-
-Flutter is also known for its fast development speed and ease of use, making it an ideal choice for startups and businesses that need to quickly develop and deploy high-quality mobile applications.
-
-In addition to mobile app development, Flutter can also be used for building desktop and web applications, thanks to its platform-independent nature. Overall, Flutter is a powerful and flexible mobile app development framework that is rapidly gaining popularity in the developer community.
 
 
 \section{Implementation}
@@ -156,14 +142,76 @@ graphic of architecture
 
 \subsection{Dvb-I Parser}\label{dvbi_parser}
 
-libraries used
-XML to Dart object mapping
-Features:
-Lazy loading. Only request data you need. Request more on obj access
-Async http request for parallel fetching
-XML to JSON parsing  
 
-\subsection{Gui Application}\label{gui}
+An important part of our implementation is the dvbi parsing library. We created the library to make \emph{http calls}\footnote{\url{https://pub.dev/packages/http}} to the serviceList servers and parse the responses. The responses of the server are in xml format so we used the \emph{xml dart package}\footnote{\url{https://pub.dev/packages/xml}} to parse it into dart and json object for further use. The services of the serviceList i.e.  were parsed into serviceElement objects which contained meta data like servicename, id etc (shown in figure \ref{fig:serviceElmentJSON}). Furthermore they contained schedule and programinfo endpoints which where used to retireve even more meta data. This includes scheduling information and extended program information. The dvb-i parser library is an external dart library and can be seamlessly imported into other projects. Furthermore it uses lazy loading this means that only the requested data you need will be loaded which improves the performance. Dart employs the concept of Asynchronous programming, which includes futures, async, and await. By using asynchronous operations, our program can continue executing tasks while waiting for other long-running operations, such as fetching data over a network, to complete.
+
+
+
+
+
+
+
+
+%write more about libraries used XML to Dart object mapping
+%Features: Lazy loading. Only request data you need. Request more on obj access Async http request for parallel fetchingXML to JSON parsing  
+
+
+\begin{figure}[ht]
+	\centerline{\includegraphics[width=\linewidth, , height=10cm]{figures/serviceElementJSON}}
+	\caption{Overview serviceElement json}
+	\label{fig:serviceElmentJSON}
+\end{figure}
+
+
+
+
+\subsection{DVB-I Parser: Schedule Info}
+%schedule info picture oder fett geschrieben
+
+To retrieve scheduleinfo meta data we used the ScheduleInfoEndpoint descirebed in [Quelle: dvbi standard] and shown in figure \ref{fig:scheduleInfoEndpoint}.
+
+Every ServiceElement Object of our implementation can request more metadata by accessing the scheduleInfo dart object.
+By default the schedule information for the next 6 hours gets fetched on object access.  However, it's easy to extend this time window. To simplify further usage, we parse the duration information of a program from a string to a double. This is necessary because the original string representation follows the ISO 8601-1 format [Quelle], which is not very human-readable.
+
+During implementation, we discovered that the provided endpoint did not return the correct metadata. After conducting several tests with different variations of the endpoint, we found that substituting the word "production" in the URL with "staging" resulted in the correct scheduling information.
+
+
+
+%maybe describe mandatory parameters in text or in caption
+\begin{figure}[ht]
+	\centerline{\includegraphics[width=\linewidth]{figures/scheduleInfoEndpointTime}}
+	\caption{Overview scheduleInfoEndpoint Quelle:Dvbi einfügen!!!!}
+	\label{fig:scheduleInfoEndpoint}
+\end{figure}
+
+
+
+\subsubsection{DVB-I Parser: Detailed Program Info }
+
+
+
+To obtain additional metadata for a specific program of a particular service, we utilized an HTTP request to the ProgramInfo-Endpoint, as depicted in Figure \ref{fig:programInfoEndpoint}. We used the programId (crid), which was obtained through the schedulingInfo request. Similar to the issues encountered during the schedulingInfo request, we faced data problems while using the URL with "production" in the path, and had to replace it with "staging." However, we still encountered a problem where the Endpoint did not respond with all the metadata that could be displayed by the DVB-I Client. We were only able to retrieve a limited amount of additional information, such as the longer text description of the program.
+
+%Problem: Endpoint doesn’t response with all  the metadata that could be displayed by the DVB-I Cient
+
+
+%maybe describe mandatory parameters in text or in caption
+\begin{figure}[ht]
+	\centerline{\includegraphics[width=\linewidth]{figures/programInfoEndpoint}}
+	\caption{Overview scheduleInfoEndpoint Quelle:Dvbi einfügen!!!!}
+	\label{fig:programInfoEndpoint}
+\end{figure}
+
+
+\subsubsection{DVB-I Parser: Optimization}
+
+The naive implementation had a runtime of O(n2) because each ScheduleEvent field required the corresponding program field marked by CRID.
+
+By using a HashMap, we could reduce the time from 10 minutes to 30 seconds when retrieving the metadata of each service element at once
+
+
+
+\subsubsection{Gui Application}\label{gui}
 
 libraries used(?)
 layout of GUI/Screenshots
@@ -195,7 +243,7 @@ only android in combination with exoplayer as mpeg dash is not supported by hls 
 
 \section{Conclusion and Future Work}
 
-subtitles, channel info button
+subtitles, channel info button, streaming hls (compatibility with apples ios, not only android)
 
 
 
@@ -279,6 +327,15 @@ citation first, followed by the original foreign-language citation \cite{b6}.
 \bibitem{b5} R. Nicole, ``Title of paper with only first word capitalized,'' J. Name Stand. Abbrev., in press.
 \bibitem{b6} Y. Yorozu, M. Hirano, K. Oka, and Y. Tagawa, ``Electron spectroscopy studies on magneto-optical media and plastic substrate interface,'' IEEE Transl. J. Magn. Japan, vol. 2, pp. 740--741, August 1987 [Digests 9th Annual Conf. Magnetics Japan, p. 301, 1982].
 \bibitem{b7} M. Young, The Technical Writer's Handbook. Mill Valley, CA: University Science, 1989.
+
+%change bib structure
+@misc{iso2019date,
+  title={Date and time—Representations for information interchange—Part 1: Basic rules},
+  author={ISO 8601-1: 2019},
+  year={2019},
+  publisher={ISO—Int Organ Stand}
+}
+
 \end{thebibliography}
 \vspace{12pt}
 \color{red}
