@@ -95,7 +95,6 @@ For C-based APIs, Dart provides a direct mechanism for binding to native code us
 
 For web apps, the js package serves a similar purpose to dart:ffi for C-based APIs, allowing developers to bind to native code directly from Dart. Additionally, since web apps run in the browser, developers can also use Dart's interop capabilities to integrate with JavaScript libraries, either by importing JavaScript libraries into Dart or by calling Dart code from JavaScript.
 
-
 \begin{figure}[ht]
 	\centerline{\includegraphics[width=\linewidth]{figures/platform-channels}}
 	\caption{Platform Channels Overview \cite{b1.1}}
@@ -103,6 +102,26 @@ For web apps, the js package serves a similar purpose to dart:ffi for C-based AP
 \end{figure}
 
 Overall, Flutter and Dart provide a variety of interoperability mechanisms that allow developers to integrate their code with other programming languages and platforms, providing flexibility and extensibility to their applications.
+
+
+\section{State Management in Flutter}
+State management is an essential aspect of building robust and performant user interfaces in Flutter. The setState() method is the most straightforward way to manage state within a single widget. When called, setState() rebuilds the widget tree, which results in the updated state being reflected in the UI.
+
+Sharing state between widgets is a common use case in Flutter applications, and it can be achieved using the setState() method by lifting the state up to a common ancestor widget seen in figure \ref{fig:state_tree}. This involves passing callbacks down the widget tree, which can be called to update the state of the ancestor widget. However, this approach can become unwieldy and result in a cluttered codebase when dealing with large and complex widget trees.
+
+
+\begin{figure}[ht]
+	\centerline{\includegraphics[width=\linewidth]{figures/state_management_tree}}
+	\caption{State Tree}
+	\label{fig:state_tree}
+\end{figure}
+
+
+The provider package offers a more robust and flexible approach to state management in Flutter applications. It provides a mechanism for sharing state across the widget tree using ChangeNotifier and ChangeNotifierProvider. ChangeNotifier is a simple class included in the Flutter SDK that provides change notification to its listeners. ChangeNotifierProvider is the widget that provides an instance of a ChangeNotifier to its descendants.
+
+To use provider, a developer simply wraps the widget subtree that requires access to the shared state with a ChangeNotifierProvider widget. Consumers of the state can then use the Consumer widget, which listens for changes to the state and rebuilds the corresponding part of the widget tree when necessary. By using provider, developers can avoid passing callbacks down the widget tree and instead focus on building composable and maintainable widgets.
+
+
 
 \section{Dart Language}
 
@@ -255,7 +274,7 @@ Content-Guide page branch:
 
 \section{Challenges GUI}
 
-
+State Management in Flutter is quite convoluted. 
 
 \begin{itemize}
 	\item Dart Streams, Dart async
