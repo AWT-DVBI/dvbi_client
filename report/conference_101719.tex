@@ -191,63 +191,89 @@ In addition to mobile app development, Flutter can also be used for building des
 
 \section{App Architecture}\label{arch}
 
-The application code can be found on \emph{Github}\footnote{\url{https://github.com/AWT-DVBI/dvbi_client}}.
-The repository has four main directories. The dvbi\_client directory is the top level node that includes the other three directories, as it implements the graphical user interface and from which the main application gets compiled. 
-We then have the dvbi\_lib directory which implements the DVB-I parser library and a command line interface to test the parser. 
-The third directory is the video\_player library, which is a wrapper for the Java Exoplayer and makes it Flutter compatible. 
+The project is hosted on  \emph{Github}\footnote{\url{https://github.com/AWT-DVBI/dvbi_client}}, and the code is organized into four main directories: dvbi\_client, dvbi\_lib, video\_player, and chewie. The dvbi\_client directory serves as the top-level node and contains the graphical user interface implementation from which the main application is compiled. The dvbi\_lib directory implements a DVB-I parser library and a command-line interface to test the parser. The video\_player library is a wrapper for the Java Exoplayer that exposes a Flutter-compatible API. Finally, the chewie library is used to implement a basic graphical user interface for the video player. 
+
 
 \begin{figure}[ht]
-	\centerline{\includegraphics[width=\linewidth, height=\linewidth]{figures/dvbi_dir_structure}}
+	\centerline{\includegraphics[width=\linewidth]{figures/dvbi_dir_structure}}
 	\caption{DVB-I Dependency Structure}
 	\label{fig:dvbi_dir_structure}
 \end{figure}
 
 
 
-\section{Implementation DVB-I Parser}
+This development project utilizes a direct dependency approach to include dependencies into the repository, which allows for quicker changes and bug fixes. The Chewie library is used as a wrapper for the Java Exoplayer and includes two main components: the ChewieController and the MaterialControls UI component. In this project, the Android MaterialControl object is copied and modified to fit the project's specific needs. The customized MaterialControls UI component is initialized as a custom video overlay UI object called MyMaterialControls. Seen in figure \ref{fig:mymaterialcontrols}
 
 
+\begin{figure}[ht]
+	\centerline{\includegraphics[width=\linewidth]{figures/MyMaterialControls}}
+	\caption{Custom video overlay initialization}
+	\label{fig:mymaterialcontrols}
+\end{figure}
 
 
-libraries used
-XML to Dart object mapping
-Features:
-Lazy loading. Only request data you need. Request more on obj access
-Async http request for parallel fetching
-XML to JSON parsing  
+\section{Features DVB-I Parser}
 
 
+\begin{itemize}
+	\item XML to Dart object mapping
+	\item Dart objects to JSON (and xml to json)
+	\item Command line utility (examples and how it works)
+	\item Async http request for parallel fetching
+	\item Lazy loading. Only request data you need. Request more on obj access
+\end{itemize}
 
-\section{Implementation GUI}\label{dvbi_parser}
+\section{Challenges DVB-I Parser}
 
-
-libraries used(?)
-layout of GUI/Screenshots
-Content Guide Page
-features: breaks everything 
-Channel Browsing
-features: subtitles, volume control, next/prev channel, show channel logo and name
-
-\section{Challenges}
-
-Dart Streams, Dart async
-idea: reduce loading times by asynchr loading channels. 
-State Management in Flutter: 
-Unaccounted for Dart language features in Riverpod
-Riverpod: Providers + Dart streams = StreamProviders
-out-of-the-box state management using State widgets
-	
 DVB-I Server wrong response data with official endpoints ( use of different staging Endpoints for correct data)
 start and end time 
 flexibility in standard leads to many edge cases 
 Bugs in libraries: videoplayer, chewie
 o(n2) performance issue due to the structure of the given xml tree and our used xml lib
 
-\section{Evaluation}
 
-scalability
-include screenshots cross platform framework flutter ....does it work on android and apples ios?
-only android in combination with exoplayer as mpeg dash is not supported by hls and the current flutter videoplayer libs
+\section{Features GUI}\label{dvbi_parser}
+
+
+Main branch features:
+\begin{itemize}
+	\item layout of GUI/Screenshots
+	\item mute video stream
+	\item next/prev channel
+	\item show channel logo and name
+\end{itemize}
+
+Content-Guide page branch: 
+\begin{itemize}
+	\item List of all TV channels with their corresponding logo
+	\item Shows what TV show is currently running and a short description
+	\item Can be selected to directly jump to the video stream
+	\item dynamic loading. Loads the content dynamically into the ui on page scroll 
+\end{itemize}
+
+
+
+\section{Challenges GUI}
+
+
+
+\begin{itemize}
+	\item Dart Streams, Dart async
+	\item idea: reduce loading times by asynchr loading channels. 
+	\item State Management in Flutter: 
+	\item Unaccounted for Dart language features in Riverpod
+	\item Riverpod: Providers + Dart streams = StreamProviders
+	\item out-of-the-box state management using State widgets
+\end{itemize}	
+
+\section{Evaluation}
+\begin{itemize}
+	\item scalability
+	\item include screenshots cross platform framework flutter ....does it work on android and apples ios?
+	\item only android in combination with exoplayer as mpeg dash is not supported by hls and the current flutter videoplayer libs
+\end{itemize}
+
+
 
 \section{Conclusion and Future Work}
 
@@ -260,6 +286,13 @@ subtitles, channel info button
 	
 \bibitem{b1.2} Skia 2D, ``Skia 2D Rendering Library``, [Online]
 \url{https://skia.org/}
+
+\bibitem{chewie_library} Chewie Library, [Online] 
+\url{https://pub.dev/packages/chewie}
+
+\bibitem{video_player_library} Video Player Library, [Online] 
+\url{https://pub.dev/packages/video_player}
+
 
 \bibitem{DVB} Digital Video Broadcasting Project, [Online]
 \url{https://dvb.org/}
