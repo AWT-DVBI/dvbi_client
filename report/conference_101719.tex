@@ -205,9 +205,13 @@ To obtain additional metadata for a specific program of a particular service, we
 
 \subsubsection{DVB-I Parser: Optimization}
 
-The naive implementation had a runtime of O(n2) because each ScheduleEvent field required the corresponding program field marked by CRID.
+Initially, our implementation had a runtime of $O (\quad n^2)$ due to the requirement of matching each ScheduleEvent field with its corresponding program field marked by CRID. This was causing high execution time, as we were iterating through the entire XML tree using the xml dart library.
 
-By using a HashMap, we could reduce the time from 10 minutes to 30 seconds when retrieving the metadata of each service element at once
+However, we were able to significantly improve the performance of our program by utilizing a HashMap. This allowed us to retrieve the metadata of each service element at once, reducing the time from 10 minutes to just 30 seconds. It is important to note that this does not mean the user of our application will have to wait for 30 seconds to see any program results, as we use asynchronous functions.
+
+
+
+
 
 
 
