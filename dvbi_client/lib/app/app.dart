@@ -19,20 +19,24 @@ var logger = Logger(printer: PrettyPrinter());
 var loggerNoStack = Logger(printer: PrettyPrinter(methodCount: 0));
 
 class IPTVPlayer extends StatefulWidget {
+  // Dart constructor. Arguments are directly the variables defined below
   const IPTVPlayer(
       {Key? key, this.title = 'IPTV Player', this.dvbi, this.endpoint})
       : super(key: key);
 
+  // Final means they can only be initialized once
   final String title;
   final DVBI? dvbi;
   final Uri? endpoint;
 
+  // State Widgets need two objects. The first one doesn't hold state just propagates it.
   @override
   State<StatefulWidget> createState() {
     return _IPTVPlayerState();
   }
 }
 
+// Top bar stateless widget displaying the title and image of the current TV channel
 class VideoInfoWidget extends StatelessWidget {
   const VideoInfoWidget({required this.service, super.key});
   final ServiceElem service;
@@ -40,9 +44,12 @@ class VideoInfoWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final s = service;
+
+    // A callback the rerenders the info object when a dependency variable changed value
     final notifier = Provider.of<PlayerNotifier>(context, listen: true);
 
     return AnimatedOpacity(
+      // In this case if the hideStuff variable changes we make this widget visible or invisible
       opacity: notifier.hideStuff ? 0.0 : 1.0,
       duration: const Duration(milliseconds: 300),
       child: Align(
@@ -67,22 +74,30 @@ class VideoInfoWidget extends StatelessWidget {
   }
 }
 
+// This class actually holds the IPTVPlayer State
 class _IPTVPlayerState extends State<IPTVPlayer> {
-  VideoPlayerController? _videoPlayerController1;
-  ChewieController? _chewieController;
-
-  MyMaterialControls? videoControls;
+  // All state variables used
+  VideoPlayerController?
+      _videoPlayerController1; // Video player object displayer video (Exoplyer wrapper)
+  ChewieController?
+      _chewieController; // UI controller ontop of the video player
+  MyMaterialControls?
+      videoControls; // Our own custom UI that implements chewies interface to be displayed ontop of the video player
   int? bufferDelay;
-  late DVBI dvbi;
-  late List<ServiceElem> serviceElems;
-  int currPlayIndex = 0;
+  late DVBI dvbi; // DVB-I object and parser library
+  late List<ServiceElem>
+      serviceElems; // Parsed and filtered list of service elements
+  int currPlayIndex =
+      0; // Current playing video used as index into serviceElems List
 
+  // State variables get initialized automatically here
   @override
   void initState() {
     super.initState();
     initializeEverything();
   }
 
+  // And disposed automatically here
   @override
   void dispose() {
     _videoPlayerController1?.dispose();
@@ -91,6 +106,7 @@ class _IPTVPlayerState extends State<IPTVPlayer> {
   }
 
   Future<void> initializeSources() async {
+    // We start by initializing the DVBI object from our dvbi_lib library.
     if (widget.dvbi != null) {
       dvbi = widget.dvbi!;
     } else {
@@ -98,11 +114,14 @@ class _IPTVPlayerState extends State<IPTVPlayer> {
       dvbi = await DVBI.create(endpointUrl: widget.endpoint!);
     }
 
+    // And filter out any tv channels without a Dash Mpd attribute
     serviceElems =
         dvbi.serviceElems.where((element) => element.dashmpd != null).toList();
   }
 
   void initializeEverything() async {
+    // We initialize the MyMaterialControls overlay UI. Which handles user input
+    // for channel switchting and muting and displays the overlay. Code for this overlay is in video_player_controls.dart
     videoControls = MyMaterialControls(
       showPlayButton: true,
       nextSrc: nextChannel,
@@ -114,24 +133,46 @@ class _IPTVPlayerState extends State<IPTVPlayer> {
 
   void initializePlayer() async {
     logger.d("Init video num $currPlayIndex");
+
+    // We select the tv channel to display by indexing the service elements
+    // with the currPlayIndex integer and get the DASH MPD Url
     final source = serviceElems[currPlayIndex].dashmpd.toString();
+
+    // We then create a new Video Player object with the dash mpd url
     final newController = VideoPlayerController.network(source);
 
+    // If there already is an old video player we copy the audio volume
+    // to the new video player
     if (_videoPlayerController1 != null) {
       newController.setVolume(_videoPlayerController1!.value.volume);
     }
-    await _videoPlayerController1?.dispose();
+
+    // We copy a reference to the old controller
+    final oldController = _videoPlayerController1;
+
+    // Then we replace the global video player object with our new one
     _videoPlayerController1 = newController;
+
+    // Afterwards we make sure to dispose the old video stream to free up memory
+    // and not run into OUT OF MEMORY issues on constrained devices.
+    await oldController?.dispose();
+
+    // At the end we initialize the video player object to start streaming and displaying content.
     try {
       await newController.initialize();
     } catch (e, trace) {
       logger.e("Source: $source", e, trace);
     }
 
+    // Now we (re)-create the video UI player controller overlay.
     _createChewieController();
+
+    // And tell flutter to rerender this widget
     setState(() {});
   }
 
+  // Function executed when video player encounters an error.
+  // We can't (yet) recover from this as the channel selection UI is gone.
   Widget videoPlaybackError(BuildContext context, String error) {
     return Row(children: [
       Expanded(
@@ -139,7 +180,9 @@ class _IPTVPlayerState extends State<IPTVPlayer> {
     ]);
   }
 
+  // Creates a new chewie controller with the current video player object
   void _createChewieController() {
+    // Dummy subtitles for the eventual subtitle feature.
     final subtitles = [
       Subtitle(
         index: 0,
@@ -174,16 +217,23 @@ class _IPTVPlayerState extends State<IPTVPlayer> {
       ),
     ];
 
+    // We create a ChewieController for the video player ui and give it
+    // the newly initialized video player object
+    // and create a stateless VideoInfoWidget that dispalys the tv channel name and logo on top
     final chewieController = ChewieController(
-      videoPlayerController: _videoPlayerController1!,
+      videoPlayerController:
+          _videoPlayerController1!, // Reference to the video player
       autoPlay: true,
       looping: true,
       isLive: true,
       allowFullScreen: true,
-      overlay: VideoInfoWidget(service: serviceElems[currPlayIndex]),
+      overlay: VideoInfoWidget(
+          service: serviceElems[
+              currPlayIndex]), // An overlay sitting in between the controls and the video player
       customControls: videoControls!,
       fullScreenByDefault: true,
-      errorBuilder: videoPlaybackError,
+      errorBuilder:
+          videoPlaybackError, // A render callback used when the video player runs into an error
       hideControlsTimer: const Duration(seconds: 1),
       subtitle: Subtitles(subtitles),
       subtitleBuilder: (context, dynamic subtitle) => Container(
@@ -197,26 +247,21 @@ class _IPTVPlayerState extends State<IPTVPlayer> {
                 style: const TextStyle(color: Colors.black),
               ),
       ),
-
-      // Try playing around with some of these other options:
-
-      // showControls: false,
-      // materialProgressColors: ChewieProgressColors(
-      //   playedColor: Colors.red,
-      //   handleColor: Colors.blue,
-      //   backgroundColor: Colors.grey,
-      //   bufferedColor: Colors.lightGreen,
-      // ),
-      // placeholder: Container(
-      //   color: Colors.grey,
-      // ),
-      // autoInitialize: true,
     );
 
-    _chewieController?.dispose();
+    // We copy a reference to the old controller
+    final oldController = _chewieController;
+
+    // To then replace it with our newly created one
     _chewieController = chewieController;
+
+    // We first dispose of the old controller
+    oldController?.dispose();
+
+    // We do this so the UI has a valid reference to a controller all the time
   }
 
+  // Switches to the next channel and recreates all UI elements tied to switching
   void nextChannel() {
     _videoPlayerController1!.dispose();
     currPlayIndex += 1;
@@ -226,6 +271,7 @@ class _IPTVPlayerState extends State<IPTVPlayer> {
     initializePlayer();
   }
 
+  // Switches to the previous channel and recreates all UI elements tied to switching
   void prevChannel() {
     _videoPlayerController1!.pause();
     currPlayIndex -= 1;
@@ -235,6 +281,8 @@ class _IPTVPlayerState extends State<IPTVPlayer> {
     initializePlayer();
   }
 
+  // Extracted widget to a function for better readability
+  // Just aligns the video player properly inside the App
   Widget buildVideoPlayer() {
     final chewieController = _chewieController;
 
@@ -252,6 +300,7 @@ class _IPTVPlayerState extends State<IPTVPlayer> {
     }
   }
 
+  // Actual rendered Widget returned by IPTVPlayer object
   @override
   Widget build(BuildContext context) {
     return MaterialApp(

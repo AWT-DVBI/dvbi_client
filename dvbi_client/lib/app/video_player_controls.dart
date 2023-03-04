@@ -21,6 +21,11 @@ import 'package:logger/logger.dart';
 var logger = Logger(printer: PrettyPrinter());
 var loggerNoStack = Logger(printer: PrettyPrinter(methodCount: 0));
 
+// We extend the ChewieController UI and implement our own overlay
+// but still use the chewiecontroller for state management and video player
+// integration
+
+// Stateful wrapper object
 class MyMaterialControls extends StatefulWidget {
   const MyMaterialControls({
     this.showPlayButton = true,
@@ -39,6 +44,7 @@ class MyMaterialControls extends StatefulWidget {
   }
 }
 
+// Actual state holder
 class _MyMaterialControlsState extends State<MyMaterialControls>
     with SingleTickerProviderStateMixin {
   late PlayerNotifier notifier;
@@ -71,6 +77,7 @@ class _MyMaterialControlsState extends State<MyMaterialControls>
 
   @override
   Widget build(BuildContext context) {
+    // If video player has an error call errorBuilder callback supplied through constructor
     if (_latestValue.hasError) {
       return chewieController.errorBuilder?.call(
             context,
@@ -85,11 +92,13 @@ class _MyMaterialControlsState extends State<MyMaterialControls>
           );
     }
 
+    // Handle TV Remote and keyboard presses
     KeyEventResult handleKeyPress(FocusNode node, KeyEvent? event) {
       _cancelAndRestartTimer();
       LogicalKeyboardKey key = event!.logicalKey;
       loggerNoStack.d("Keypressed: $key");
 
+      // If arrow left/down button has been pressend
       if (key == LogicalKeyboardKey.arrowLeft ||
           key == LogicalKeyboardKey.arrowDown ||
           key == LogicalKeyboardKey.channelDown) {
@@ -97,6 +106,7 @@ class _MyMaterialControlsState extends State<MyMaterialControls>
         return KeyEventResult.handled;
       }
 
+      // If arrow right/up button has been pressend
       if (key == LogicalKeyboardKey.arrowRight ||
           key == LogicalKeyboardKey.arrowUp ||
           key == LogicalKeyboardKey.channelUp) {
@@ -104,6 +114,7 @@ class _MyMaterialControlsState extends State<MyMaterialControls>
         return KeyEventResult.handled;
       }
 
+      // If volume mute button has been pressend
       if (key == LogicalKeyboardKey.audioVolumeMute) {
         if (_latestValue.volume == 0) {
           controller.setVolume(_latestVolume ?? 0.5);
@@ -121,6 +132,7 @@ class _MyMaterialControlsState extends State<MyMaterialControls>
         // TODO: Volume down
       }
 
+      // If subtitle button has been pressed
       if (key == LogicalKeyboardKey.subtitle) {
         setState(() {
           _subtitleOn = !_subtitleOn;
@@ -135,6 +147,8 @@ class _MyMaterialControlsState extends State<MyMaterialControls>
         onHover: (_) {
           _cancelAndRestartTimer();
         },
+
+        // If tap has been detected or mouse movement show ui controls
         child: GestureDetector(
           onTap: () => _cancelAndRestartTimer(),
           child: Focus(
@@ -149,8 +163,8 @@ class _MyMaterialControlsState extends State<MyMaterialControls>
                       child: CircularProgressIndicator(),
                     )
                   else
-                    _buildVideoControls(),
-                  _buildActionBar(context),
+                    _buildVideoControls(), // Build the center navigation buttons
+                  _buildActionBar(context), // Build top ui bar
                   Column(
                     mainAxisAlignment: MainAxisAlignment.end,
                     children: <Widget>[
@@ -163,7 +177,7 @@ class _MyMaterialControlsState extends State<MyMaterialControls>
                           child: _buildSubtitles(
                               context, chewieController.subtitle!),
                         ),
-                      _buildBottomBar(context),
+                      _buildBottomBar(context), // Build the bottom ui bar
                     ],
                   ),
                 ],
@@ -186,6 +200,7 @@ class _MyMaterialControlsState extends State<MyMaterialControls>
     _showAfterExpandCollapseTimer?.cancel();
   }
 
+  // Flutter internals. Quite complex to comprehend and possible cause of a disposed and dangling invalid reference we have with this library.
   @override
   void didChangeDependencies() {
     final oldController = _chewieController;
@@ -237,6 +252,7 @@ class _MyMaterialControlsState extends State<MyMaterialControls>
     );
   }
 
+  // Widget that is a drop down menu displayed after clicking the button in the top right corner
   Widget _buildOptionsButton() {
     final options = <OptionItem>[
       OptionItem(
@@ -290,6 +306,7 @@ class _MyMaterialControlsState extends State<MyMaterialControls>
     );
   }
 
+  // Unused feature of subtitles.
   Widget _buildSubtitles(BuildContext context, Subtitles subtitles) {
     if (!_subtitleOn) {
       return const SizedBox();
@@ -325,6 +342,7 @@ class _MyMaterialControlsState extends State<MyMaterialControls>
     );
   }
 
+  // Widget that aggregates all other widgets in a bottom bar
   AnimatedOpacity _buildBottomBar(
     BuildContext context,
   ) {
@@ -368,6 +386,7 @@ class _MyMaterialControlsState extends State<MyMaterialControls>
     );
   }
 
+  // Widget for the mute button on the bottom right corner
   Widget _buildMuteButton(
     VideoPlayerController controller,
   ) {
@@ -394,6 +413,7 @@ class _MyMaterialControlsState extends State<MyMaterialControls>
     );
   }
 
+  // Widget for the three pointed button on the top right
   Widget _buildExpandButton() {
     return AnimatedOpacity(
       opacity: notifier.hideStuff ? 0.0 : 1.0,
@@ -419,6 +439,7 @@ class _MyMaterialControlsState extends State<MyMaterialControls>
     );
   }
 
+  // Widget for the next and prev arrows ontop the video palyer
   Widget _buildVideoControls() {
     return AnimatedOpacity(
         opacity: notifier.hideStuff ? 0.0 : 1.0,
@@ -431,7 +452,8 @@ class _MyMaterialControlsState extends State<MyMaterialControls>
               child: IconButton(
                   iconSize: 60,
                   padding: EdgeInsets.zero,
-                  onPressed: widget.prevSrc,
+                  onPressed: widget
+                      .prevSrc, // Call function to change video source to previous one
                   icon: const Icon(Icons.skip_previous_sharp))),
           const SizedBox(
             height: 80.0,
@@ -443,7 +465,8 @@ class _MyMaterialControlsState extends State<MyMaterialControls>
               child: IconButton(
                   iconSize: 60,
                   padding: EdgeInsets.zero,
-                  onPressed: widget.nextSrc,
+                  onPressed: widget
+                      .nextSrc, // Call function to change video source to next one
                   icon: const Icon(Icons.skip_next_sharp))),
         ])));
   }

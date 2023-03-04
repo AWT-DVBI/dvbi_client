@@ -13,8 +13,10 @@ const String endpointUrl = "https://dvb-i.net/production/services.php/de";
 var logger = Logger(printer: PrettyPrinter());
 var loggerNoStack = Logger(printer: PrettyPrinter(methodCount: 0));
 
+// Application start
 void main() {
   runApp(
+    // Our DVB-I Player object. Requires the endpoint URL.
     IPTVPlayer(
       endpoint: Uri.parse(endpointUrl),
     ),
