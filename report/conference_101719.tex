@@ -292,7 +292,7 @@ An important part of our implementation is the dvbi parsing library. We created 
 \subsection{DVB-I Parser: Schedule Info}
 %schedule info picture oder fett geschrieben
 
-To retrieve scheduleinfo meta data we used the ScheduleInfoEndpoint descirebed in [Quelle: dvbi standard] and shown in figure \ref{fig:scheduleInfoEndpoint}.
+We used the ScheduleInfoEndpoint descirebed in [Quelle: dvbi standard] and shown in figure \ref{fig:scheduleInfoEndpoint} to retrieve scheduleinfo meta data for specific programs .
 
 Every ServiceElement Object of our implementation can request more metadata by accessing the scheduleInfo dart object.
 By default the schedule information for the next 6 hours gets fetched on object access.  However, it's easy to extend this time window. To simplify further usage, we parse the duration information of a program from a string to a double. This is necessary because the original string representation follows the ISO 8601-1 format [Quelle], which is not very human-readable.
@@ -327,9 +327,9 @@ To obtain additional metadata for a specific program of a particular service, we
 \end{figure}
 
 
-\subsubsection{DVB-I Parser: Optimization}
+\subsubsection{DVB-I Parser: Optimization}\label{dvbi opt}
 
-Initially, our implementation had a runtime of $O (\quad n^2)$ due to the requirement of matching each ScheduleEvent field with its corresponding program field marked by CRID. This was causing high execution time, as we were iterating through the entire XML tree using the xml dart library.
+Initially, our implementation had a runtime of $O(n^2)$ due to the requirement of matching each ScheduleEvent field with its corresponding program field marked by CRID. This was causing high execution time, as we were iterating through the entire XML tree using the xml dart library.
 
 However, we were able to significantly improve the performance of our program by utilizing a HashMap. This allowed us to retrieve the metadata of each service element at once, reducing the time from 10 minutes to just 30 seconds. It is important to note that this does not mean the user of our application will have to wait for 30 seconds to see any program results, as we use asynchronous functions.
 
@@ -350,19 +350,34 @@ features: subtitles, volume control, next/prev channel, show channel logo and na
 
 \section{Challenges}
 
-Dart Streams, Dart async
-idea: reduce loading times by asynchr loading channels. 
+
+ 
+
+During the implementation of the DVB-I Parser Library and DVB-I GUI, several challenges were encountered. One significant challenge of the DVB-I parser library, as outlined in Section \ref{dvbi opt}, was the limited scalability when retrieving multiple meta-information for various services and their associated programs. We addressed this challenge by utilizing a hash map and reducing the time interval for displaying programs from the next 24 hours to 6 hours. To prevent long waiting times for users of the DVB-I client, we used the concept of dart streams and asynchronous functions to decrease the loading time for channels.
+Another issue faced during the implementation of the DVB-I parser library was the incorrect information response from the official endpoints, as discussed in Section \ref{dvbi_parser}. It appears that the production environment of the endpoint is not up-to-date and needs to be updated soon. 
+
+
+Furthermore, the responses from the endpoint varied significantly regarding the presence or absence of specific information. This is because the DVB-I standard allows for a wide range of possibilities.
+Consequently, our code required robustness and flexibility to handle null values and avoid errors in the client interface.
+
+
+
+%still missing, maybe move to gui challenges
 State Management in Flutter: 
 Unaccounted for Dart language features in Riverpod
 Riverpod: Providers + Dart streams = StreamProviders
 out-of-the-box state management using State widgets
-	
-DVB-I Server wrong response data with official endpoints ( use of different staging Endpoints for correct data)
-start and end time 
-flexibility in standard leads to many edge cases 
-Bugs in libraries: videoplayer, chewie
-o(n2) performance issue due to the structure of the given xml tree and our used xml lib
+start and end time
 
+Bugs in libraries: videoplayer, chewie
+
+
+%Dart Streams, Dart async 
+%idea: reduce loading times by asynchr loading channels. 
+%DVB-I Server wrong response data with official endpoints ( use of different staging Endpoints for correct data)
+%o(n2) performance issue due to the structure of the given xml tree and our used xml lib
+%start and end time 
+%flexibility in standard leads to many edge cases 
 
 \section{Features GUI}\label{dvbi_parser}
 
@@ -399,6 +414,12 @@ State Management in Flutter is quite convoluted.
 \end{itemize}	
 
 \section{Evaluation}
+
+
+%anforderungen erfüllt? verschiedene programme abspielen auf android tv , anzeigen meta information etc....
+
+%ist our code flexible to various different xml formats for same request? -> yes tested with all service available in the servicelist
+
 \begin{itemize}
 	\item scalability
 	\item include screenshots cross platform framework flutter ....does it work on android and apples ios?
@@ -409,7 +430,7 @@ State Management in Flutter is quite convoluted.
 
 \section{Conclusion and Future Work}
 
-subtitles, channel info button, streaming hls (compatibility with apples ios, not only android)
+subtitles, channel info button, streaming hls (compatibility with apples ios, not only android), user input start and end time for specific program information
 
 
 
