@@ -379,10 +379,29 @@ Bugs in libraries: videoplayer, chewie
 %start and end time 
 %flexibility in standard leads to many edge cases 
 
-\section{Features GUI}\label{dvbi_parser}
+\section{Features: GUI}\label{dvbi_parser}
+\begin{figure}[h]
+	\centerline{\includegraphics[width=\linewidth]{figures/ContentGuidePage}}
+	\caption{Overview of the Content Guide Page: \raisebox{.5pt}{\textcircled{\raisebox{-.9pt} {1}}} Title and logo (if available) of channel, \raisebox{.5pt}{\textcircled{\raisebox{-.9pt} {2}}} logo of currently running program, \raisebox{.5pt}{\textcircled{\raisebox{-.9pt} {3}}} title and brief description of currently running program}
+	\label{fig:contentGuidePage}
+\end{figure}
 
+The second major component of our application is a GUI that renders information retrieved and parsed from \textit{ServiceListRegistry}, \textit{ContentGuide}, and \textit{MPD} servers in a visually appealing way as well as let users interact with said information through interfaces similar to terrestrial television. To this end, we developed a \textbf{Content Guide Page} and a \textbf{Video Player} page.
 
-Main branch features:
+\subsection{Content Guide Page}
+Figure \ref{fig:contentGuidePage} illustrates the Content Guide Page. It presents a user with an overview of all available channels, gives visual and textual context regarding each channel and the currently playing program (illustrated in \raisebox{.5pt}{\textcircled{\raisebox{-.9pt} {1}}} and \raisebox{.5pt}{\textcircled{\raisebox{-.9pt} {2}}}), and  gives the title and a brief textual description of the currently playing program, illustrated in \raisebox{.5pt}{\textcircled{\raisebox{-.9pt} {3}}}. \\\par
+
+Users can browse through the content guide page. Channel and program info not currently displayed are dynamically loaded. This ensures the GUI stays responsive even on lower powered hardware devices. Once a user has found a program they desire to watch, they can select the program. The \textbf{Video Player} page is then loaded to play the selected channel.
+
+\subsection{Video Player}
+\begin{figure}[h]
+	\centerline{\includegraphics[width=\linewidth]{figures/VideoPlayer}}
+	\caption{Overview of the Video Player: \raisebox{.5pt}{\textcircled{\raisebox{-.9pt} {1}}} Channel logo, \raisebox{.5pt}{\textcircled{\raisebox{-.9pt} {2}}} name of channel, \raisebox{.5pt}{\textcircled{\raisebox{-.9pt} {3}}} mute button, \raisebox{.5pt}{\textcircled{\raisebox{-.9pt} {4}}} previous and next channel buttons, \raisebox{.5pt}{\textcircled{\raisebox{-.9pt} {5}}} closed captioning button, \raisebox{.5pt}{\textcircled{\raisebox{-.9pt} {6}}} extra options (playback speed) }
+	\label{fig:videoPlayer}
+\end{figure}
+The \textbf{Video Player} page plays back DASH MPD files retrieved from MPD servers, displays contextual information about the currently running program, lets users switch channels, as well as mute and unmute. \\\par
+
+Figure \ref{fig:videoPlayer} illustrates the video player in more detail. \raisebox{.5pt}{\textcircled{\raisebox{-.9pt} {1}}} and \raisebox{.5pt}{\textcircled{\raisebox{-.9pt} {2}}} give contextual information about the current channel through the channel logo and channel name respectively. \raisebox{.5pt}{\textcircled{\raisebox{-.9pt} {3}}} allows the user to mute and unmute the program. \raisebox{.5pt}{\textcircled{\raisebox{-.9pt} {4}}} show the previous and next channel buttons. Using these allows the user to browse between channels. \raisebox{.5pt}{\textcircled{\raisebox{-.9pt} {5}}} illustrates the closed captioning button. This is currently not available but is part of potential future work. \raisebox{.5pt}{\textcircled{\raisebox{-.9pt} {6}}} brings up a menu for additional video playback options, such as video playback speed. This feature is also part of our future work.
 \begin{itemize}
 	\item layout of GUI/Screenshots
 	\item mute video stream
