@@ -348,29 +348,17 @@ features: breaks everything
 Channel Browsing
 features: subtitles, volume control, next/prev channel, show channel logo and name
 
-\section{Challenges}
+\section{Challenges: Parser}
 
 
  
 
-During the implementation of the DVB-I Parser Library and DVB-I GUI, several challenges were encountered. One significant challenge of the DVB-I parser library, as outlined in Section \ref{dvbi opt}, was the limited scalability when retrieving multiple meta-information for various services and their associated programs. We addressed this challenge by utilizing a hash map and reducing the time interval for displaying programs from the next 24 hours to 6 hours. To prevent long waiting times for users of the DVB-I client, we used the concept of dart streams and asynchronous functions to decrease the loading time for channels.
+During the implementation of the DVB-I Parser Library several challenges were encountered. One significant challenge of the DVB-I parser library, as outlined in Section \ref{dvbi opt}, was the limited scalability when retrieving multiple meta-information for various services and their associated programs. We addressed this challenge by utilizing a hash map and reducing the time interval for displaying programs from the next 24 hours to 6 hours. To prevent long waiting times for users of the DVB-I client, we used the concept of dart streams and asynchronous functions to decrease the loading time for channels.
 Another issue faced during the implementation of the DVB-I parser library was the incorrect information response from the official endpoints, as discussed in Section \ref{dvbi_parser}. It appears that the production environment of the endpoint is not up-to-date and needs to be updated soon. 
 
 
 Furthermore, the responses from the endpoint varied significantly regarding the presence or absence of specific information. This is because the DVB-I standard allows for a wide range of possibilities.
 Consequently, our code required robustness and flexibility to handle null values and avoid errors in the client interface.
-
-
-
-%still missing, maybe move to gui challenges
-State Management in Flutter: 
-Unaccounted for Dart language features in Riverpod
-Riverpod: Providers + Dart streams = StreamProviders
-out-of-the-box state management using State widgets
-start and end time
-
-Bugs in libraries: videoplayer, chewie
-
 
 %Dart Streams, Dart async 
 %idea: reduce loading times by asynchr loading channels. 
@@ -391,7 +379,7 @@ The second major component of our application is a GUI that renders information 
 \subsection{Content Guide Page}
 Figure \ref{fig:contentGuidePage} illustrates the Content Guide Page. It presents a user with an overview of all available channels, gives visual and textual context regarding each channel and the currently playing program (illustrated in \raisebox{.5pt}{\textcircled{\raisebox{-.9pt} {1}}} and \raisebox{.5pt}{\textcircled{\raisebox{-.9pt} {2}}}), and  gives the title and a brief textual description of the currently playing program, illustrated in \raisebox{.5pt}{\textcircled{\raisebox{-.9pt} {3}}}. \\\par
 
-Users can browse through the content guide page. Channel and program info not currently displayed are dynamically loaded. This ensures the GUI stays responsive even on lower powered hardware devices. Once a user has found a program they desire to watch, they can select the program. The \textbf{Video Player} page is then loaded to play the selected channel.
+The app briefly loads the entire Service List at start up. The Content Guide Page is populated with information found in the Service List elements. Requests for further information about each running program is done asynchronously, allowing users to browse through the Content Guide Page while more information is being fetched. Channel and program info not currently displayed are dynamically loaded. This ensures the GUI stays responsive even on lower powered hardware devices. Once a user has found a program they desire to watch, they can select the program. The \textbf{Video Player} page is then loaded to play the selected channel.
 
 \subsection{Video Player}
 \begin{figure}[h]
@@ -402,26 +390,24 @@ Users can browse through the content guide page. Channel and program info not cu
 The \textbf{Video Player} page plays back DASH MPD files retrieved from MPD servers, displays contextual information about the currently running program, lets users switch channels, as well as mute and unmute. \\\par
 
 Figure \ref{fig:videoPlayer} illustrates the video player in more detail. \raisebox{.5pt}{\textcircled{\raisebox{-.9pt} {1}}} and \raisebox{.5pt}{\textcircled{\raisebox{-.9pt} {2}}} give contextual information about the current channel through the channel logo and channel name respectively. \raisebox{.5pt}{\textcircled{\raisebox{-.9pt} {3}}} allows the user to mute and unmute the program. \raisebox{.5pt}{\textcircled{\raisebox{-.9pt} {4}}} show the previous and next channel buttons. Using these allows the user to browse between channels. \raisebox{.5pt}{\textcircled{\raisebox{-.9pt} {5}}} illustrates the closed captioning button. This is currently not available but is part of potential future work. \raisebox{.5pt}{\textcircled{\raisebox{-.9pt} {6}}} brings up a menu for additional video playback options, such as video playback speed. This feature is also part of our future work.
-\begin{itemize}
-	\item layout of GUI/Screenshots
-	\item mute video stream
-	\item next/prev channel
-	\item show channel logo and name
-\end{itemize}
 
-Content-Guide page branch: 
-\begin{itemize}
-	\item List of all TV channels with their corresponding logo
-	\item Shows what TV show is currently running and a short description
-	\item Can be selected to directly jump to the video stream
-	\item dynamic loading. Loads the content dynamically into the ui on page scroll 
-\end{itemize}
+We use the Chewie \cite{chewie_library} library to display a widget that plays back video. The Chewie library is built ontop of the video player \cite{video_player_library} library. Ontop of the video we overlay buttons to browse between channels. The Video Player Controller listens to a state that holds the current playing video. The channel browsing buttons change the state, which causes the video player to re-render.
 
+\section{Challenges: GUI}
+\begin{figure}[h]
+	\centerline{\includegraphics[width=\linewidth]{figures/UI-rendering-flutter}}
+	\caption{UI rendering in Flutter: The UI is a function of app state \cite{Flutter_UI_Rendering}}
+	\label{fig:ui-rendering-flutter}
+\end{figure}
+\subsection{State Management}
+One of the major issues we ran into during development was properly managing state in Flutter. Figure \ref{fig:ui-rendering-flutter} illustrates how Flutter renders its UI. Flutter uses a declarative approach to UI programming, meaning you describe what the UI should look like for any given state. The widgets that depend on state are re-rendered whenever that state changes. \\\par
 
+Initially, we wanted to provide the contents of a Service List as a stream, dynamically loading, parsing, and rendering elements as they arrive.
+Using streams instead of loading all Service Elements at once would make our UI more responsive and save on memory.
+To render the GUI anew whenever new elements of the stream arrived, we encapsulated the stream in a StreamProvider using Riverpod \cite{RiverPod}. Widgets that depend on the stream would listen for changes to the state, which contained the list of currently available Service Elements an re-render. Since stream elements arrive asynchronously, components of our app listening to changes were required to carry the async keyword. This resulted in the propagation of async functions throughout the code base, which in turn made it more difficult to implement simple functions.Furthermore, Riverpod as a library lacks maturity, as there are features in the Dart language that are unaccounted for in Riverpod. Due to the two above mentioned difficulties, we moved away from using streams and simply loaded the entire Service List into memory at once. This greatly simplified state management.
 
-\section{Challenges GUI}
-
-State Management in Flutter is quite convoluted. 
+\subsection{Chewie Library} 
+To speed up development, the Content Guide Page and Video Player page were developed separately. On its own, browsing channels on the Video Player page works without triggering bugs that crash the app. However, when incorporating the Content Guide Page, browsing channels causes the app to function incorrectly. The sound of the new channel is played, but the video player displays only a black screen. We believe this is due to either the old state not being disposed of correctly or the widgets controlling video playback still referring to objects based on old state which no longer exist. No errors are thrown regarding improper disposal  of state or objects using no longer valid state, making debugging more difficult.
 
 \begin{itemize}
 	\item Dart Streams, Dart async
@@ -448,8 +434,15 @@ State Management in Flutter is quite convoluted.
 
 
 \section{Conclusion and Future Work}
+TODO: CONCLUSION
 
-subtitles, channel info button, streaming hls (compatibility with apples ios, not only android), user input start and end time for specific program information
+Although some of the libraries in the Flutter ecosystem require more maturation, the flexibility and extensibility provided by the Flutter frameworks and libraries therein allow a broad range of future work to be explored. \\\par
+Currently, the video player page displays the option to turn on closed captioning. Some Service Elements also deliver subtitles, allowing for easy integration,  greater accessibility, and usability to the hearing impaired. \\\par
+Furthermore, the video player page as well as the content guide page display only a small amount of the information available in Service Elements. This could be extended to include a more detailed description of the currently running program, both in the Content Guide Page and the Video Player page.
+The Content Guide Page can also be updated to display channel timetables, allowing users to see what programs will be running in the future.
+\\\par
+From a technical perspective, choosing Flutter allows for greater flexibility regarding platforms. Currently, we have deployed our application only on Android platforms. However, supporting iOS and web applications is also possible. \\\par
+Lastly, moving back to using streams instead of loading entire Service Lists upfront is worth exploring, since potentially many service lists might no longer fit into memory.
 
 
 
@@ -490,6 +483,15 @@ subtitles, channel info button, streaming hls (compatibility with apples ios, no
 
 \bibitem{DVBI-I} Digital Video Broadcasting-Internet: ``a standards-based solution for delivering television – live, linear and on-demand – in the internet age``
 \url{https://dvb-i.tv/}
+
+\bibitem{RiverPod} A Reactive Caching and Data-binding Framework 
+\url{https://riverpod.dev/}
+
+\bibitem{Flutter_UI_Rendering} 'Start thinking declaratively'
+\url{https://docs.flutter.dev/development/data-and-backend/state-mgmt/declarative}
+
+
+
 
 \end{thebibliography}
 %\vspace{12pt}
