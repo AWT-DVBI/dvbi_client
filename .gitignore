@@ -1,5 +1,4 @@
 .direnv
-**/*.pdf
 **/*.out
 **/.dart_tool
 **/.flutter-plugins
