@@ -22,7 +22,7 @@
 \textit{TU Berlin}\\
 Berlin, Germany \\}
 \and
-\IEEEauthorblockN{2\textsuperscript{nd} Nicklas}
+\IEEEauthorblockN{2\textsuperscript{nd} Niklas}
 \IEEEauthorblockA{\textit{M. Sc. Information Systems Management} \\
 \textit{TU Berlin}\\
 Berlin, Germany \\}
@@ -292,10 +292,10 @@ An important part of our implementation is the dvbi parsing library. We created 
 \subsection{DVB-I Parser: Schedule Info}
 %schedule info picture oder fett geschrieben
 
-We used the ScheduleInfoEndpoint descirebed in [Quelle: dvbi standard] and shown in figure \ref{fig:scheduleInfoEndpoint} to retrieve scheduleinfo meta data for specific programs .
+We used the ScheduleInfoEndpoint descirebed in \cite{} and shown in figure \ref{fig:scheduleInfoEndpoint} to retrieve scheduleinfo meta data for specific programs .
 
 Every ServiceElement Object of our implementation can request more metadata by accessing the scheduleInfo dart object.
-By default the schedule information for the next 6 hours gets fetched on object access.  However, it's easy to extend this time window. To simplify further usage, we parse the duration information of a program from a string to a double. This is necessary because the original string representation follows the ISO 8601-1 format [Quelle], which is not very human-readable.
+By default the schedule information for the next 6 hours gets fetched on object access.  However, it's easy to extend this time window. To simplify further usage, we parse the duration information of a program from a string to a double. This is necessary because the original string representation follows the ISO 8601-1 format \cite{iso2019}, which is not very human-readable.
 
 During implementation, we discovered that the provided endpoint did not return the correct metadata. After conducting several tests with different variations of the endpoint, we found that substituting the word "production" in the URL with "staging" resulted in the correct scheduling information.
 
@@ -304,7 +304,7 @@ During implementation, we discovered that the provided endpoint did not return t
 %maybe describe mandatory parameters in text or in caption
 \begin{figure}[ht]
 	\centerline{\includegraphics[width=\linewidth]{figures/scheduleInfoEndpointTime}}
-	\caption{Overview scheduleInfoEndpoint Quelle:Dvbi einfügen!!!!}
+	\caption{Overview scheduleInfoEndpoint \cite{DVBI-I}}
 	\label{fig:scheduleInfoEndpoint}
 \end{figure}
 
@@ -322,7 +322,7 @@ To obtain additional metadata for a specific program of a particular service, we
 %maybe describe mandatory parameters in text or in caption
 \begin{figure}[ht]
 	\centerline{\includegraphics[width=\linewidth]{figures/programInfoEndpoint}}
-	\caption{Overview scheduleInfoEndpoint Quelle:Dvbi einfügen!!!!}
+	\caption{Overview scheduleInfoEndpoint \cite{DVBI-I}}
 	\label{fig:programInfoEndpoint}
 \end{figure}
 
@@ -425,24 +425,32 @@ To speed up development, the Content Guide Page and Video Player page were devel
 
 %Design and develop a DVB-I Android Client Library (No UI). This library will implement the required REST APIs and XML Parsing.
 
-In this section, we present an analysis of the results of our implementation, which was developed with specific requirements in mind.
+In this section, we present an analysis of the results of our implementation. The implementation was specifically designed to meet certain requirements.
 
-Firstly, our implementation needed to be capable of handling the required REST APIs and XML Parsing from the DVB-I concept, including communication with the servicelist, mdp, and content guide servers. To achieve this, we developed a DVB-I Android Client Library as described in \ref{dvbi_parser}. Functionality tests for various scenarios are available in the test folder of the project (potentially referenced as the Flutter test folder). Our parser library is capable of handling all requests and various XML files from the endpoints, with code that can adapt flexibly to different XML responses.
+
+
+
+
+Firstly, our implementation needed to be capable of handling the required REST APIs and XML Parsing from the DVB-I concept, including communication with the servicelist, mdp, and content guide servers. To achieve this, we developed a DVB-I Android Client Library as described in \ref{dvbi_parser}. 
+%Functionality tests for various scenarios are available in the test folder of the project (potentially referenced as the Flutter test folder). 
+Our parser library is capable of handling all requests and various XML files from the endpoints, with code that can adapt flexibly to different XML responses.
 
 
 %Develop a native Android TV Application (not using WebView) that uses the DVB-I Android Client Library and present the TV Services. 
 
 
 Moreover, we also developed a GUI using Flutter as described in \ref{dvbi_parser}. This GUI can be compiled as a native Android TV Application that utilizes the DVB-I Android Client Library to present TV Services. Several features were required to be included in our GUI. One key requirement was the ability to play various channels and programs and switch between them seamlessly. This was implemented as detailed in \ref{dvbi_parser}. Additionally, we needed to display the meta-data of programs from different services to the user in a user-friendly manner.
- The result page can be seen in the picture !!!ref content guide page.
+ The result page can be seen in the picture\ref{fig:contentGuidePage} content guide page.
 
 %Evaluate the implementation in Android TV Emulator and on Android TV Set-top-boxes or TV Sticks (Google Chromecast, Amazon FireTV). 
 
 
-We tested the functionalities by using the android emulator in android studio as shown in figure XX. We used emulators of the  google pixel and android TV. 
+We tested the functionalities by using the android emulator in android studio. We used emulators of the  google pixel and android TV. 
 
 
-Our implementation does only work on Android with exoplayer. The flutter video player does not parse the given mpd stream to an hls stream which is necessary to work on ios.
+Our implementation does only work on Android with exoplayer. The flutter video player does not parse the given mpd stream to an hls stream which would be necessary to work on ios.
+
+As mentioned in \ref{dvbi opt} we optimized the scalability by utilizing a hash map, enabling users to view the results of the service list requests immediately.
 
 %anforderungen erfüllt? verschiedene programme abspielen auf android tv , anzeigen meta information etc....
 
@@ -458,7 +466,7 @@ Our implementation does only work on Android with exoplayer. The flutter video p
 
 
 \section{Conclusion and Future Work}
-In summary, we developed an application consisting of two major components, a DVB-I parser and a GUI, capable of accesing TV programs over the internet and allowing users to interact with the application similar to terrestrial TV.  We used Dart and Flutter due its cross-platform capabilities and speed. The DVB-I parser library efficiently retrieves data from Service List Registry servers and can be easily incorporated into other projects. The GUI presents users with a clean interface over which to interact with the information provided by the parser. Our project demonstrates the feasibility of using Dart and Flutter to develop an Andoird application for presenting TV services. However, the many challenges encountered while developing the GUI shows the importance of mature libraries and good documentation, thus leading to our reccomendation to not use Flutter for similar projects, until libraries mature furhter. \\\par
+In summary, we developed an application consisting of two major components, a DVB-I parser and a GUI, capable of accesing TV programs over the internet and allowing users to interact with the application similar to terrestrial TV.  We used Dart and Flutter due its cross-platform capabilities and speed. The DVB-I parser library efficiently retrieves data from Service List Registry servers and can be easily incorporated into other projects. The GUI presents users with a clean interface over which to interact with the information provided by the parser. Our project demonstrates the feasibility of using Dart and Flutter to develop an Andoird application for presenting TV services. However, the many challenges encountered while developing the GUI shows the importance of mature libraries and good documentation, thus leading to our reccomendation to not use Flutter for similar projects, until libraries mature further. \\\par
 
 Although some of the libraries in the Flutter ecosystem require more maturation, the flexibility and extensibility provided by the Flutter frameworks and libraries therein allow a broad range of future work to be explored. \\\par
 Currently, the video player page displays the option to turn on closed captioning. Some Service Elements also deliver subtitles, allowing for easy integration,  greater accessibility, and usability to the hearing impaired. \\\par
@@ -482,13 +490,9 @@ Lastly, moving back to using streams instead of loading entire Service Lists upf
 \bibitem{b6} Y. Yorozu, M. Hirano, K. Oka, and Y. Tagawa, ``Electron spectroscopy studies on magneto-optical media and plastic substrate interface,'' IEEE Transl. J. Magn. Japan, vol. 2, pp. 740--741, August 1987 [Digests 9th Annual Conf. Magnetics Japan, p. 301, 1982].
 \bibitem{b7} M. Young, The Technical Writer's Handbook. Mill Valley, CA: University Science, 1989.
 
-%change bib structure
-@misc{iso2019date,
-  title={Date and time—Representations for information interchange—Part 1: Basic rules},
-  author={ISO 8601-1: 2019},
-  year={2019},
-  publisher={ISO—Int Organ Stand}
-}
+
+\bibitem{iso2019} ISO 8601-1: "Date and time -- Representations for information interchange -- Part 1: Basic rules". 2019
+
 
 
 
