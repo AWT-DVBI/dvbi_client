@@ -418,8 +418,31 @@ To speed up development, the Content Guide Page and Video Player page were devel
 	\item out-of-the-box state management using State widgets
 \end{itemize}	
 
+
 \section{Evaluation}
 
+
+
+%Design and develop a DVB-I Android Client Library (No UI). This library will implement the required REST APIs and XML Parsing.
+
+In this section, we present an analysis of the results of our implementation, which was developed with specific requirements in mind.
+
+Firstly, our implementation needed to be capable of handling the required REST APIs and XML Parsing from the DVB-I concept, including communication with the servicelist, mdp, and content guide servers. To achieve this, we developed a DVB-I Android Client Library as described in \ref{dvbi_parser}. Functionality tests for various scenarios are available in the test folder of the project (potentially referenced as the Flutter test folder). Our parser library is capable of handling all requests and various XML files from the endpoints, with code that can adapt flexibly to different XML responses.
+
+
+%Develop a native Android TV Application (not using WebView) that uses the DVB-I Android Client Library and present the TV Services. 
+
+
+Moreover, we also developed a GUI using Flutter as described in \ref{dvbi_parser}. This GUI can be compiled as a native Android TV Application that utilizes the DVB-I Android Client Library to present TV Services. Several features were required to be included in our GUI. One key requirement was the ability to play various channels and programs and switch between them seamlessly. This was implemented as detailed in \ref{dvbi_parser}. Additionally, we needed to display the meta-data of programs from different services to the user in a user-friendly manner.
+ The result page can be seen in the picture !!!ref content guide page.
+
+%Evaluate the implementation in Android TV Emulator and on Android TV Set-top-boxes or TV Sticks (Google Chromecast, Amazon FireTV). 
+
+
+We tested the functionalities by using the android emulator in android studio as shown in figure XX. We used emulators of the  google pixel and android TV. 
+
+
+Our implementation does only work on Android with exoplayer. The flutter video player does not parse the given mpd stream to an hls stream which is necessary to work on ios.
 
 %anforderungen erfüllt? verschiedene programme abspielen auf android tv , anzeigen meta information etc....
 
@@ -430,6 +453,7 @@ To speed up development, the Content Guide Page and Video Player page were devel
 	\item include screenshots cross platform framework flutter ....does it work on android and apples ios?
 	\item only android in combination with exoplayer as mpeg dash is not supported by hls and the current flutter videoplayer libs
 \end{itemize}
+
 
 
 
