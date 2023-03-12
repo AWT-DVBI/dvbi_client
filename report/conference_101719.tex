@@ -44,7 +44,7 @@ We used the Dart programming language to write the DVB-I parser library and Goog
 
  However, we faced challenges in developing the GUI app in Flutter due to multiple bugs in the libraries we used and sparse documentation. Despite these challenges, we were able to develop a working app to present TV services on Android devices.
 
-Our project demonstrates the feasibility of using Dart to write an efficient DVB-I parser library and Flutter to develop a GUI app that presents TV services on Android devices. However the challenges we faced in developing the GUI app highlight the importance of mature libraries and documentation to support developers in using these technologies. The lack of maturity in the Flutter ecosystem has compelled us to not recommend it for further projects.
+Our project demonstrates the feasibility of using Dart to write an efficient DVB-I parser library and Flutter to develop a GUI app that presents TV services on Android devices. However the challenges we faced in developing the GUI app highlight the importance of mature libraries and documentation to support developers in using these technologies. The lack of maturity in the Flutter ecosystem has compelled us not to recommend it for further projects.
 \end{abstract}
 
 \begin{IEEEkeywords}
@@ -58,40 +58,32 @@ The development of the DVB-I parser library involved reading the DVB-I standard 
 
 The development of the Android GUI app using Flutter involved building an intuitive user interface to present the TV services to the user, as well as incorporating the DVB-I parser library to retrieve and display the information for each service. We faced challenges while developing the app, including multiple bugs in libraries used and sparse documentation, which affected the app's functionality and usability.
 
-In this report, we will assess the success of our project in achieving its goals and evaluate the performance and usability of the DVB-I parser library and Android GUI app developed. We will also discuss the challenges encountered during development and recommend future improvements to enhance the overall functionality and usability of the app.
+In this report, we will assess the success of our project in achieving its goals and evaluate the performance and usability of the DVB-I parser library and Android GUI app. We will also discuss the challenges encountered during development and recommend future improvements to enhance the overall functionality and usability of the app.
 
 \section{Scientific Background}
 
 This section will provide an overview of the utilized technologies and their respective functionalities.
 
-\subsection{DVB-I Standard}
-
-The DVB-I (DVB-Internet) standard is a specification developed by the Digital Video Broadcasting (DVB) organization for delivering linear television services over the internet.The standard defines the mechanisms to be used to find sets of linear television services delivered through broadband or broadcast mechanisms as well as methods to retrieve electronic programme data for those services.[ref to document]
-
-The core of the specification is the Service List Registry (SLR) which provides a set of REST APIs allowing clients (TVs, Mobile, Browser) to retrieve a list of services (ServiceList) in an XML-based format including all information required to present the TV service in the client. The DVB-I standard, published by ETSI, expands upon the existing DVB Broadcast-based delivery methods, such as Terrestrial, Satellite, and Cable, to provide simpler and more accessible options for viewing both Linear and VOD Streaming services on any internet-connected device. With this open standard, users can enjoy a seamless viewing experience across multiple devices without any limitations.
 
 
 
-
-
-\subsection{Flutter Framework}\label{AA}
+\section{Flutter Framework}\label{AA}
 
 %What is Flutter. How does it work? Why we chose it?%
 
-Flutter is an open-source mobile app development framework developed by Google that allows developers to create high-performance, cross-platform mobile applications for iOS, Android, and other platforms from a single codebase.
+Flutter is an open-source mobile app development framework created by Google that allows developers to create high-performance, cross-platform mobile applications for iOS, Android, and other platforms from a single codebase.
 
 Flutter uses a programming language called Dart, which is also developed by Google, and provides a rich set of pre-built UI widgets and tools that allow developers to create visually appealing and interactive mobile applications. The framework uses a reactive programming model, which means that changes in the app's state are automatically reflected in the UI, making it easy to build dynamic user interfaces.
 
-One of the key benefits of Flutter is its hot-reload feature, which allows developers to quickly see the changes they make to the code in real-time on the app, without having to rebuild the entire application. This significantly speeds up the development process and makes it easier for developers to experiment with different UI designs and functionality.
+One of the key benefits of Flutter is the hot-reload feature, which allows developers to quickly see the changes they make to the code in real-time on the app, without having to rebuild the entire application. This significantly speeds up the development process and makes it easier for developers to experiment with different UI designs and functionality.
 
 Flutter is also known for its fast development speed and ease of use, making it an ideal choice for startups and businesses that need to quickly develop and deploy high-quality mobile applications.
 
 In addition to mobile app development, Flutter can also be used for building desktop and web applications, thanks to its platform-independent nature. Overall, Flutter is a powerful and flexible mobile app development framework that is rapidly gaining popularity in the developer community.
 
-\section{Architecture Overview}
 \section{Flutter Architecture Overview}
 
-Flutter is a cross-platform framework for building mobile and desktop applications. Its architecture consists of four main layers: the Dart app layer, the framework layer, the engine layer, and the platform layer. Shown in figure \ref{fig:flutter_tech_stack}.
+Flutter is a cross-platform framework for building mobile and desktop applications. Its architecture consists of four main layers: the Dart app layer, the framework layer, the engine layer, and the platform layer, shown in figure \ref{fig:flutter_tech_stack}.
 
 \begin{figure}[ht]
 	\centerline{\includegraphics[width=\linewidth]{figures/app-anatomy}}
@@ -125,13 +117,14 @@ For web apps, the js package serves a similar purpose to dart:ffi for C-based AP
 	\label{fig:platform-channels}
 \end{figure}
 
+% TOOD: We could shorten this section
 Overall, Flutter and Dart provide a variety of interoperability mechanisms that allow developers to integrate their code with other programming languages and platforms, providing flexibility and extensibility to their applications.
 
 
 \section{State Management in Flutter}
 State management is an essential aspect of building robust and performant user interfaces in Flutter. The setState() method is the most straightforward way to manage state within a single widget. When called, setState() rebuilds the widget tree, which results in the updated state being reflected in the UI.
 
-Sharing state between widgets is a common use case in Flutter applications, and it can be achieved using the setState() method by lifting the state up to a common ancestor widget seen in figure \ref{fig:state_tree}. This involves passing callbacks down the widget tree, which can be called to update the state of the ancestor widget. However, this approach can become unwieldy and result in a cluttered codebase when dealing with large and complex widget trees.
+Sharing state between widgets is a common use case in Flutter applications, and it can be achieved using the setState() method by lifting the state up to a common ancestor widget, as shown in Figure \ref{fig:state_tree} . This involves passing callbacks down the widget tree, which can be called to update the state of the ancestor widget. However, this approach can become unwieldy and result in a cluttered codebase when dealing with large and complex widget trees.
 
 
 \begin{figure}[ht]
@@ -196,7 +189,6 @@ For Linux the Nix package manager has been found to provide an efficient and org
 
 In summary, the utilization of Nix and its development environment provides an effective strategy for minimizing the complexity of setting up a development environment, ensuring reproducibility, and creating a dependable development environment.
 
-For Windows Flutter... TODO
 
 \begin{comment}
 
@@ -245,7 +237,7 @@ The project is hosted on  \emph{Github}\footnote{\url{https://github.com/AWT-DVB
 
 
 
-This development project utilizes a direct dependency approach to include dependencies into the repository, which allows for quicker changes and bug fixes. The Chewie library is used as a wrapper for the Java Exoplayer and includes two main components: the ChewieController and the MaterialControls UI component. In this project, the Android MaterialControl object is copied and modified to fit the project's specific needs. The customized MaterialControls UI component is initialized as a custom video overlay UI object called MyMaterialControls. Seen in figure \ref{fig:mymaterialcontrols}
+This development project utilizes a direct dependency approach to include dependencies into the repository, which allows for quicker changes and bug fixes. The Chewie library is used as a wrapper for the Java Exoplayer and includes two main components: the ChewieController and the MaterialControls UI component. In this project, the Android MaterialControl object is copied and modified to fit the project's specific needs. The customized MaterialControls UI component is initialized as a custom video overlay UI object called MyMaterialControls, as seen in Figure \ref{fig:mymaterialcontrols} .
 
 
 \begin{figure}[ht]
@@ -254,20 +246,12 @@ This development project utilizes a direct dependency approach to include depend
 	\label{fig:mymaterialcontrols}
 \end{figure}
 
+%TODO: maybe clear page
 
-\section{Features DVB-I Parser}
-
-
-\begin{itemize}
-	\item XML to Dart object mapping
-	\item Dart objects to JSON (and xml to json)
-	\item Command line utility (examples and how it works)
-	\item Async http request for parallel fetching
-	\item Lazy loading. Only request data you need. Request more on obj access
-\end{itemize}
+\section{Feature: DVB-I Parser}
 
 
-An important part of our implementation is the dvbi parsing library. We created the library to make \emph{http calls}\footnote{\url{https://pub.dev/packages/http}} to the serviceList servers and parse the responses. The responses of the server are in xml format so we used the \emph{xml dart package}\footnote{\url{https://pub.dev/packages/xml}} to parse it into dart and json object for further use. The services of the serviceList i.e.  were parsed into serviceElement objects which contained meta data like servicename, id etc (shown in figure \ref{fig:serviceElmentJSON}). Furthermore they contained schedule and programinfo endpoints which where used to retireve even more meta data. This includes scheduling information and extended program information. The dvb-i parser library is an external dart library and can be seamlessly imported into other projects. Furthermore it uses lazy loading this means that only the requested data you need will be loaded which improves the performance. Dart employs the concept of Asynchronous programming, which includes futures, async, and await. By using asynchronous operations, our program can continue executing tasks while waiting for other long-running operations, such as fetching data over a network, to complete.
+An important part of our implementation is the dvbi parsing library. We created the library to make \emph{HTTP calls}\footnote{\url{https://pub.dev/packages/http}} to the serviceList servers and parse the responses. As the responses of the server are in xml format, we use the \emph{XML dart package}\footnote{\url{https://pub.dev/packages/xml}} to parse the responses into dart and json objects. The services of the serviceList i.e.  were parsed into serviceElement objects which contained meta data like servicename, id etc (shown in figure \ref{fig:serviceElmentJSON}). Furthermore, they contained schedule and programinfo endpoints which where used to retireve even more meta data. This includes scheduling information and extended program information. The dvb-i parser library is an external dart library and can be seamlessly imported into other projects. Furthermore, it uses lazy loading this means that only the requested data you need will be loaded which improves the performance. By using asynchronous operations, our program can continue executing tasks while waiting for other long-running operations, such as fetching data over a network, to complete.
 
 
 
@@ -292,9 +276,9 @@ An important part of our implementation is the dvbi parsing library. We created 
 \subsection{DVB-I Parser: Schedule Info}
 %schedule info picture oder fett geschrieben
 
-We used the ScheduleInfoEndpoint descirebed in \cite{} and shown in figure \ref{fig:scheduleInfoEndpoint} to retrieve scheduleinfo meta data for specific programs .
+We used the ScheduleInfoEndpoint described in \cite{DVBI-I}, as shown in Figure \ref{fig:scheduleInfoEndpoint} to retrieve scheduleinfo meta data for specific programs.
 
-Every ServiceElement Object of our implementation can request more metadata by accessing the scheduleInfo dart object.
+Every ServiceElement Object of our implementation can request more metadata by accessing the scheduleInfo Dart object.
 By default the schedule information for the next 6 hours gets fetched on object access.  However, it's easy to extend this time window. To simplify further usage, we parse the duration information of a program from a string to a double. This is necessary because the original string representation follows the ISO 8601-1 format \cite{iso2019}, which is not very human-readable.
 
 During implementation, we discovered that the provided endpoint did not return the correct metadata. After conducting several tests with different variations of the endpoint, we found that substituting the word "production" in the URL with "staging" resulted in the correct scheduling information.
@@ -314,7 +298,7 @@ During implementation, we discovered that the provided endpoint did not return t
 
 
 
-To obtain additional metadata for a specific program of a particular service, we utilized an HTTP request to the ProgramInfo-Endpoint, as depicted in Figure \ref{fig:programInfoEndpoint}. We used the programId (crid), which was obtained through the schedulingInfo request. Similar to the issues encountered during the schedulingInfo request, we faced data problems while using the URL with "production" in the path, and had to replace it with "staging." However, we still encountered a problem where the Endpoint did not respond with all the metadata that could be displayed by the DVB-I Client. We were only able to retrieve a limited amount of additional information, such as the longer text description of the program.
+To obtain additional metadata for a specific program of a particular service, we utilized an HTTP request to the ProgramInfo-Endpoint, as depicted in Figure \ref{fig:programInfoEndpoint} . We used the programId (crid), which was obtained through the schedulingInfo request. Similar to the issues encountered during the schedulingInfo request, we faced data problems while using the URL with "production" in the path, and had to replace it with "staging." However, we still encountered a problem where the Endpoint did not respond with all the metadata that could be displayed by the DVB-I Client. We were only able to retrieve a limited amount of additional information, such as the longer text description of the program.
 
 %Problem: Endpoint doesn’t response with all  the metadata that could be displayed by the DVB-I Cient
 
@@ -329,7 +313,7 @@ To obtain additional metadata for a specific program of a particular service, we
 
 \subsubsection{DVB-I Parser: Optimization}\label{dvbi opt}
 
-Initially, our implementation had a runtime of $O(n^2)$ due to the requirement of matching each ScheduleEvent field with its corresponding program field marked by CRID. This was causing high execution time, as we were iterating through the entire XML tree using the xml dart library.
+Initially, our implementation had a runtime of $O(n^2)$ due to the requirement of matching each ScheduleEvent field with its corresponding program field marked by CRID. This was causing high execution time, as we were iterating through the entire XML tree using the XML Dart library.
 
 However, we were able to significantly improve the performance of our program by utilizing a HashMap. This allowed us to retrieve the metadata of each service element at once, reducing the time from 10 minutes to just 30 seconds. It is important to note that this does not mean the user of our application will have to wait for 30 seconds to see any program results, as we use asynchronous functions.
 
@@ -337,23 +321,12 @@ However, we were able to significantly improve the performance of our program by
 
 
 
-
-
-\subsubsection{Gui Application}\label{gui}
-
-libraries used(?)
-layout of GUI/Screenshots
-Content Guide Page
-features: breaks everything 
-Channel Browsing
-features: subtitles, volume control, next/prev channel, show channel logo and name
-
 \section{Challenges: Parser}
 
 
  
 
-During the implementation of the DVB-I Parser Library several challenges were encountered. One significant challenge of the DVB-I parser library, as outlined in Section \ref{dvbi opt}, was the limited scalability when retrieving multiple meta-information for various services and their associated programs. We addressed this challenge by utilizing a hash map and reducing the time interval for displaying programs from the next 24 hours to 6 hours. To prevent long waiting times for users of the DVB-I client, we used the concept of dart streams and asynchronous functions to decrease the loading time for channels.
+During the implementation of the DVB-I Parser Library several challenges were encountered. One significant challenge of the DVB-I parser library, as outlined in Section \ref{dvbi opt}, was the limited scalability when retrieving multiple meta-information for various services and their associated programs. We addressed this challenge by utilizing a hash map and reducing the time interval for displaying programs from the next 24 hours to 6 hours. To prevent long waiting times for users of the DVB-I client, we used the concept of Dart streams and asynchronous functions to decrease the loading time for channels.
 Another issue faced during the implementation of the DVB-I parser library was the incorrect information response from the official endpoints, as discussed in Section \ref{dvbi_parser}. It appears that the production environment of the endpoint is not up-to-date and needs to be updated soon. 
 
 
@@ -379,7 +352,7 @@ The second major component of our application is a GUI that renders information 
 \subsection{Content Guide Page}
 Figure \ref{fig:contentGuidePage} illustrates the Content Guide Page. It presents a user with an overview of all available channels, gives visual and textual context regarding each channel and the currently playing program (illustrated in \raisebox{.5pt}{\textcircled{\raisebox{-.9pt} {1}}} and \raisebox{.5pt}{\textcircled{\raisebox{-.9pt} {2}}}), and  gives the title and a brief textual description of the currently playing program, illustrated in \raisebox{.5pt}{\textcircled{\raisebox{-.9pt} {3}}}. \\\par
 
-The app briefly loads the entire ServiceList at start up. The Content Guide Page is populated with information found in the ServiceList elements. Requests for further information about each running program is done asynchronously, allowing users to browse through the Content Guide Page while more information is being fetched. Channel and program info not currently displayed are dynamically loaded. This ensures the GUI stays responsive even on lower powered hardware devices. Once a user has found a program they desire to watch, they can select the program. The \textbf{Video Player} page is then loaded to play the selected channel.
+The app briefly loads the entire ServiceList at start up. The Content Guide Page is populated with information found in the ServiceList elements. Requests for further information about each running program is done asynchronously, allowing users to browse through the Content Guide Page while more information is being fetched. This ensures the GUI stays responsive even on lower powered hardware devices. Once a user has found a program they desire to watch, they can select the program. The \textbf{Video Player} page is then loaded to play the selected channel.
 
 \subsection{Video Player}
 \begin{figure}[h]
@@ -404,23 +377,17 @@ One of the major issues we ran into during development was properly managing sta
 
 Initially, we wanted to provide the contents of a ServiceList as a stream, dynamically loading, parsing, and rendering elements as they arrive.
 Using streams instead of loading all Service Elements at once would make our UI more responsive and save on memory.
-To render the GUI anew whenever new elements of the stream arrived, we initially encapsulated the stream in a StreamProvider using Riverpod \cite{RiverPod}. Widgets that depend on the stream would listen for changes to the state, which contained the list of currently available Service Elements an re-render. Since stream elements arrive asynchronously, components of our app listening to changes were required to carry the async keyword. This resulted in the propagation of async functions throughout the code base, which in turn made it more difficult to implement simple functions. Errors occuring in Futures dont produce a stack trace, making debugging highly asycnrhonous code much more difficult. Furthermore, Riverpod as a library lacks maturity, as asynchronous functions arent supported, which are used by the vidoe player. Due to the two above mentioned difficulties, we moved away from using streams and simply loaded the entire Service List into memory at once. This greatly simplified state management.
+To render the GUI anew whenever new elements of the stream arrived, we initially encapsulated the stream in a StreamProvider using Riverpod \cite{RiverPod}. Widgets that depend on the stream would listen for changes to the state, which contained the list of currently available Service Elements an re-render. Since stream elements arrive asynchronously, components of our app listening to changes were required to carry the async keyword. This resulted in the propagation of async functions throughout the code base, which in turn made it more difficult to implement simple functions. Errors occuring in Futures don't produce a stack trace, making debugging highly asycnrhonous code much more difficult. Furthermore, Riverpod as a library lacks maturity, as asynchronous functions arent supported, which are used by the vidoe player. Due to the two above mentioned difficulties, we moved away from using streams and simply loaded the entire Service List into memory at once. This greatly simplified state management.
 
 \subsection{Chewie Library} 
 To speed up development, the Content Guide Page and Video Player page were developed separately. On its own, browsing channels on the Video Player page works without triggering bugs that crash the app. However, when incorporating the Content Guide Page, browsing channels causes the app to function incorrectly. The sound of the new channel is played, but the video player displays only a black screen. We believe this is due to either the old state not being disposed of correctly or the widgets controlling video playback still referring to objects based on old state which no longer exist. No errors are thrown regarding improper disposal  of state or objects using no longer valid state, making debugging more difficult. Furthermore, we had to keep track of when to drop the video player widget in order to not run out of memory, which becomes more complex when the video player object can be accessed concurrently due to asynchronous functions. This resulted in having to manually deallocate memory in an otherwise garbage collected language, meaning we were working against the intended design of Dart.
 
-\begin{itemize}
-	\item Dart Streams, Dart async
-	\item idea: reduce loading times by asynchr loading channels. 
-	\item State Management in Flutter: 
-	\item Unaccounted for Dart language features in Riverpod
-	\item Riverpod: Providers + Dart streams = StreamProviders
-	\item out-of-the-box state management using State widgets
-\end{itemize}	
 
 
 \section{Evaluation}
 
+%TODO: Did we like Flutter would we use it again? 
+%TODO: Did we achieve the goal of the module implementing a GUI and a parser lib? 
 
 
 %Design and develop a DVB-I Android Client Library (No UI). This library will implement the required REST APIs and XML Parsing.
@@ -431,7 +398,7 @@ In this section, we present an analysis of the results of our implementation. Th
 
 
 
-Firstly, our implementation needed to be capable of handling the required REST APIs and XML Parsing from the DVB-I concept, including communication with the servicelist, mdp, and content guide servers. To achieve this, we developed a DVB-I Android Client Library as described in \ref{dvbi_parser}. 
+Firstly, our implementation needed to be capable of handling the required REST APIs and XML Parsing from the DVB-I concept, including communication with the ServiceList, MPD, and content guide servers. To achieve this, we developed a DVB-I Android Client Library as described in section \ref{dvbi_parser} . 
 %Functionality tests for various scenarios are available in the test folder of the project (potentially referenced as the Flutter test folder). 
 Our parser library is capable of handling all requests and various XML files from the endpoints, with code that can adapt flexibly to different XML responses.
 
@@ -439,7 +406,7 @@ Our parser library is capable of handling all requests and various XML files fro
 %Develop a native Android TV Application (not using WebView) that uses the DVB-I Android Client Library and present the TV Services. 
 
 
-Moreover, we also developed a GUI using Flutter as described in \ref{dvbi_parser}. This GUI can be compiled as a native Android TV Application that utilizes the DVB-I Android Client Library to present TV Services. Several features were required to be included in our GUI. One key requirement was the ability to play various channels and programs and switch between them seamlessly. This was implemented as detailed in \ref{dvbi_parser}. Additionally, we needed to display the meta-data of programs from different services to the user in a user-friendly manner.
+Moreover, we also developed a GUI using Flutter as described in section \ref{dvbi_parser} . This GUI can be compiled as a native Android TV Application that utilizes the DVB-I Android Client Library to present TV Services. Several features were required to be included in our GUI. One key requirement was the ability to play various channels and programs and switch between them seamlessly. This was implemented as detailed in section \ref{dvbi_parser} . Additionally, we needed to display the meta-data of programs from different services to the user in a user-friendly manner.
  The result page can be seen in the picture\ref{fig:contentGuidePage} content guide page.
 
 %Evaluate the implementation in Android TV Emulator and on Android TV Set-top-boxes or TV Sticks (Google Chromecast, Amazon FireTV). 
@@ -456,17 +423,11 @@ As mentioned in \ref{dvbi opt} we optimized the scalability by utilizing a hash 
 
 %ist our code flexible to various different xml formats for same request? -> yes tested with all service available in the servicelist
 
-\begin{itemize}
-	\item scalability
-	\item include screenshots cross platform framework flutter ....does it work on android and apples ios?
-	\item only android in combination with exoplayer as mpeg dash is not supported by hls and the current flutter videoplayer libs
-\end{itemize}
-
 
 
 
 \section{Conclusion and Future Work}
-In summary, we developed an application consisting of two major components, a DVB-I parser and a GUI, capable of accesing TV programs over the internet and allowing users to interact with the application similar to terrestrial TV.  We used Dart and Flutter due its cross-platform capabilities and speed. The DVB-I parser library efficiently retrieves data from Service List Registry servers and can be easily incorporated into other projects. The GUI presents users with a clean interface over which to interact with the information provided by the parser. Our project demonstrates the feasibility of using Dart and Flutter to develop an Andoird application for presenting TV services. However, the many challenges encountered while developing the GUI shows the importance of mature libraries and good documentation, thus leading to our reccomendation to not use Flutter for similar projects, until libraries mature further. \\\par
+In summary, we developed an application consisting of two major components, a DVB-I parser and a GUI, which together are capable of accesing TV programs over the internet and allowing users to interact with the application similar to terrestrial TV.  We used Dart and Flutter due its cross-platform capabilities and speed. The DVB-I parser library efficiently retrieves data from Service List Registry servers and can be easily incorporated into other projects. The GUI presents users with a clean interface over which to interact with the information provided by the parser. Our project demonstrates the feasibility of using Dart and Flutter to develop an Andoird application for presenting TV services. However, the many challenges encountered while developing the GUI shows the importance of mature libraries and good documentation, thus leading to our reccomendation to not use Flutter for similar projects, until libraries mature further. \\\par
 
 Although some of the libraries in the Flutter ecosystem require more maturation, the flexibility and extensibility provided by the Flutter frameworks and libraries therein allow a broad range of future work to be explored. \\\par
 Currently, the video player page displays the option to turn on closed captioning. Some Service Elements also deliver subtitles, allowing for easy integration,  greater accessibility, and usability to the hearing impaired. \\\par
