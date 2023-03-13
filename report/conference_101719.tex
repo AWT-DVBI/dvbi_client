@@ -392,32 +392,19 @@ To speed up development, the Content Guide Page and Video Player page were devel
 
 %Design and develop a DVB-I Android Client Library (No UI). This library will implement the required REST APIs and XML Parsing.
 
-In this section, we present an analysis of the results of our implementation. The implementation was specifically designed to meet certain requirements.
+In this section, we present a detailed analysis of the results obtained from our implementation, which was developed to meet specific requirements.
+
+One of the primary objectives of our implementation was to handle the required REST APIs and XML parsing from the DVB-I concept, including communication with the ServiceList, MPD, and content guide servers. To achieve this, we developed a DVB-I Android Client Library, which is described in section \ref{dvbi_parser}. Our parser library is capable of handling all requests from endpoints, and the code can adapt flexibly to different XML responses.
+
+Another important objective of our implementation was to develop a GUI using Flutter, as described in section \ref{dvbi_parser}. This GUI can be compiled as a native Android application that utilizes the DVB-I Android Client Library to present TV Services. Our GUI includes several key features, such as the ability to play various channels and programs and switch between them seamlessly, as detailed in section \ref{dvbi_parser}. Additionally, we needed to display the meta-data of programs from different services in a user-friendly manner.
+
+We evaluated the functionalities by using the Android emulator in Android Studio. We used emulators of the Google Pixel and Android TV. Our implementation has only been tested on Android with Exoplayer. As mentioned in section \ref{dvbi opt}, we optimized scalability by utilizing a hash map, enabling users to view the results of the service list requests immediately.
+
+We encountered multiple NULL pointer bugs in the video\_player and chewie library, which we had to fix. We also found that documentation was absent when we derailed slightly from the few examples provided. Additionally, we discovered that state management solutions like Riverpod or the provider package, which have been recommended in the official Flutter documentation, are feature incomplete and very error-prone, making them challenging to debug. Furthermore, Darts Async feature is a big contributing factor for NULL pointer bugs in general, and it makes it difficult to locate the issue as stack traces are not available if an error occurs in a Future.
+
+In total Flutter is a promising technology on paper but due to immature libraries, bad documentation and questionable language design decisions we believe that Flutter is not yet ready to be used for production. 
 
 
-
-
-
-Firstly, our implementation needed to be capable of handling the required REST APIs and XML Parsing from the DVB-I concept, including communication with the ServiceList, MPD, and content guide servers. To achieve this, we developed a DVB-I Android Client Library as described in section \ref{dvbi_parser} . 
-%Functionality tests for various scenarios are available in the test folder of the project (potentially referenced as the Flutter test folder). 
-Our parser library is capable of handling all requests and various XML files from the endpoints, with code that can adapt flexibly to different XML responses.
-
-
-%Develop a native Android TV Application (not using WebView) that uses the DVB-I Android Client Library and present the TV Services. 
-
-
-Moreover, we also developed a GUI using Flutter as described in section \ref{dvbi_parser} . This GUI can be compiled as a native Android TV Application that utilizes the DVB-I Android Client Library to present TV Services. Several features were required to be included in our GUI. One key requirement was the ability to play various channels and programs and switch between them seamlessly. This was implemented as detailed in section \ref{dvbi_parser} . Additionally, we needed to display the meta-data of programs from different services to the user in a user-friendly manner.
- The result page can be seen in the picture\ref{fig:contentGuidePage} content guide page.
-
-%Evaluate the implementation in Android TV Emulator and on Android TV Set-top-boxes or TV Sticks (Google Chromecast, Amazon FireTV). 
-
-
-We tested the functionalities by using the android emulator in android studio. We used emulators of the  google pixel and android TV. 
-
-
-Our implementation does only work on Android with exoplayer. The flutter video player does not parse the given mpd stream to an hls stream which would be necessary to work on ios.
-
-As mentioned in \ref{dvbi opt} we optimized the scalability by utilizing a hash map, enabling users to view the results of the service list requests immediately.
 
 %anforderungen erfüllt? verschiedene programme abspielen auf android tv , anzeigen meta information etc....
 
